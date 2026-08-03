@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Balaji Mobile — Luxury Showroom Launcher</title>
+  <style>
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+    body {
+      background-color: #050505;
+      color: #F8F8F8;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      min-height: 100vh;
+      padding: 20px;
+    }
+    .card {
+      background: #0D1117;
+      border: 1px solid rgba(212, 175, 55, 0.4);
+      box-shadow: 0 20px 60px rgba(0, 0, 0, 0.9), 0 0 40px rgba(212, 175, 55, 0.2);
+      padding: 40px;
+      border-radius: 28px;
+      max-width: 480px;
+      width: 100%;
+      text-align: center;
+    }
+    .logo-badge {
+      width: 64px;
+      height: 64px;
+      background: linear-gradient(135deg, #D4AF37, #E7C76A);
+      color: #050505;
+      font-weight: 900;
+      font-size: 24px;
+      border-radius: 20px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin: 0 auto 16px;
+      box-shadow: 0 0 25px rgba(212, 175, 55, 0.5);
+    }
+    h1 {
+      color: #F8F8F8;
+      font-size: 26px;
+      font-weight: 900;
+      letter-spacing: -0.5px;
+      margin-bottom: 6px;
+    }
+    .sub {
+      color: #D4AF37;
+      font-family: monospace;
+      font-size: 11px;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      margin-bottom: 24px;
+    }
+    .btn-group {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+    .btn {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+      background: linear-gradient(135deg, #0FAE72, #0B8F5C);
+      color: #FFFFFF;
+      font-weight: 800;
+      padding: 16px 24px;
+      border-radius: 16px;
+      text-decoration: none;
+      font-size: 14px;
+      transition: all 0.3s ease;
+      box-shadow: 0 4px 20px rgba(15, 174, 114, 0.35);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+    }
+    .btn:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 8px 30px rgba(15, 174, 114, 0.5);
+    }
+    .btn-gold {
+      background: linear-gradient(135deg, #D4AF37, #E7C76A);
+      color: #050505;
+      box-shadow: 0 4px 20px rgba(212, 175, 55, 0.4);
+    }
+    .btn-gold:hover {
+      box-shadow: 0 8px 30px rgba(212, 175, 55, 0.6);
+    }
+    .btn-dark {
+      background: #050505;
+      color: #F8F8F8;
+      border: 1px solid rgba(255, 255, 255, 0.15);
+      box-shadow: none;
+    }
+    .btn-dark:hover {
+      border-color: #D4AF37;
+      color: #D4AF37;
+    }
+    .footer-note {
+      margin-top: 20px;
+      font-size: 11px;
+      color: #B8BDC8;
+      font-family: monospace;
+    }
+  </style>
+</head>
+<body>
+  <div class="card">
+    <div class="logo-badge">BM</div>
+    <h1>BALAJI MOBILE</h1>
+    <div class="sub">Luxury Smartphone Showroom</div>
+
+    <div class="btn-group">
+      <a class="btn btn-gold" href="http://localhost:3000/" target="_self">
+        🚀 Open Website Showroom (Homepage)
+      </a>
+      
+      <a class="btn" href="http://localhost:3000/admin" target="_self">
+        🔑 Open Store Owner Admin Panel (CMS)
+      </a>
+      
+      <a class="btn btn-dark" href="http://localhost:3000/second-hand" target="_self">
+        💎 Open Certified Pre-Owned Showroom
+      </a>
+
+      <a class="btn btn-dark" href="http://localhost:3000/products" target="_self">
+        📱 Open Flagship Smartphone Catalog
+      </a>
+    </div>
+
+    <div class="footer-note">
+      Server Running on <strong>http://localhost:3000/</strong><br/>
+      Morbi, Gujarat, India • Balaji Mobile CMS
+    </div>
+  </div>
+</body>
+</html>

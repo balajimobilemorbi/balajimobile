@@ -1,0 +1,5 @@
+User-agent: *
+Allow: /
+Disallow: /admin
+Disallow: /checkout
+Sitemap: https://bmmobile.com/sitemap.xml

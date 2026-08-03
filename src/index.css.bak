@@ -1,0 +1,57 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  body {
+    @apply bg-cream-100 text-cream-900 dark:bg-titanium-950 dark:text-slate-100 font-sans antialiased transition-colors duration-300;
+  }
+
+  /* Custom luxury scrollbar */
+  ::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+  }
+
+  ::-webkit-scrollbar-track {
+    @apply bg-cream-200 dark:bg-titanium-900;
+  }
+
+  ::-webkit-scrollbar-thumb {
+    @apply bg-gold-accent/60 dark:bg-titanium-700 rounded-full border-2 border-cream-100 dark:border-titanium-900;
+  }
+
+  ::-webkit-scrollbar-thumb:hover {
+    @apply bg-gold-metallic dark:bg-emerald-accent;
+  }
+}
+
+@layer utilities {
+  .glass-panel {
+    @apply bg-cream-50/80 dark:bg-titanium-900/60 backdrop-blur-xl border border-gold-border/40 dark:border-white/10 shadow-luxury-card;
+  }
+
+  .glass-card {
+    @apply bg-gradient-to-br from-white/90 to-cream-50/70 dark:from-white/5 dark:to-white/0 backdrop-blur-md border border-gold-border/40 dark:border-white/10 shadow-luxury-card;
+  }
+
+  .text-gradient-gold {
+    background: linear-gradient(135deg, #2A241E 0%, #AA7C11 50%, #D4AF37 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+  }
+
+  .dark .text-gradient-gold {
+    background: linear-gradient(135deg, #ffffff 0%, #F3E5AB 50%, #D4AF37 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+  }
+
+  .badge-gold {
+    @apply inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold bg-amber-100 text-amber-900 border border-amber-300 dark:bg-amber-950/60 dark:text-amber-300 dark:border-amber-500/30 backdrop-blur-md;
+  }
+
+  .badge-emerald {
+    @apply inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold bg-emerald-100 text-emerald-900 border border-emerald-300 dark:bg-emerald-glow/80 dark:text-emerald-accent dark:border-emerald-accent/30 backdrop-blur-md;
+  }
+}
