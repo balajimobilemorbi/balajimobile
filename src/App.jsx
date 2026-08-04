@@ -142,7 +142,7 @@ export default function App() {
         )}
 
         <Navbar 
-          onOpenSearch={() => setAiChatOpen(true)}
+          onOpenSearch={() => setSearchModalOpen(true)}
           onToggleTheme={toggleTheme}
           isDark={isDark}
         />
@@ -201,7 +201,10 @@ export default function App() {
 
         {/* AI Live Search Popup */}
         {searchModalOpen && (
-          <AISearchModal onClose={() => setSearchModalOpen(false)} />
+          <AISearchModal 
+            onClose={() => setSearchModalOpen(false)} 
+            onOpenAiChat={() => setAiChatOpen(true)}
+          />
         )}
 
       </div>

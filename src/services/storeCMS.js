@@ -68,10 +68,17 @@ const getUserVaultKey = (user) => {
 };
 
 // REALTIME CLOUD STORAGE ENGINE FOR LIVE CROSS-DEVICE SYNC (Laptop ↔ Mobile ↔ Netlify)
-const FIXED_CLOUD_RELAY_URLS = [
-  'https://jsonblob.com/api/jsonBlob/019fb3dc-4292-7322-9ed4-26c120c13e6d',
-  'https://jsonblob.com/api/jsonBlob/019fb3dd-79eb-7b7d-8ad5-d6f4d4808765'
-];
+const DYNAMIC_RELAY_KEY = 'bm_cloud_relay_active_url';
+const DEFAULT_CLOUD_RELAY_URL = 'https://jsonblob.com/api/jsonBlob/019fcbf9-5a79-7894-8c35-3352a420ae7b';
+
+const getActiveCloudRelayUrls = () => {
+  const customUrl = localStorage.getItem(DYNAMIC_RELAY_KEY);
+  const urls = [
+    customUrl,
+    DEFAULT_CLOUD_RELAY_URL
+  ].filter(Boolean);
+  return [...new Set(urls)];
+};
 
 let isSyncingWithCloud = false;
 
@@ -134,9 +141,32 @@ export const storeCMS = {
         localStorage.setItem(STORAGE_KEYS.CLOUD_SYNC_TIMESTAMP, payload.updatedAt);
       }
 
-      // Trigger instant UI re-render on all open Netlify devices
+      // Trigger instant UI re-render on all open devices
       window.dispatchEvent(new CustomEvent('bm_cms_update', { detail: { source: 'cloud' } }));
     }
+  },
+
+  // Helper to provision a fresh JSONBlob endpoint if active URLs are down/404
+  provisionNewCloudRelay: async (payload) => {
+    try {
+      const res = await fetch('https://jsonblob.com/api/jsonBlob', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
+        body: JSON.stringify(payload)
+      });
+      if (res.ok || res.status === 201) {
+        const loc = res.headers.get('location');
+        if (loc) {
+          const newUrl = loc.startsWith('http') ? loc : `https://jsonblob.com${loc}`;
+          localStorage.setItem(DYNAMIC_RELAY_KEY, newUrl);
+          console.log('⚡ Auto-provisioned fresh Cloud Relay:', newUrl);
+          return newUrl;
+        }
+      }
+    } catch (e) {
+      console.warn('Cloud relay auto-provision error:', e);
+    }
+    return null;
   },
 
   // Sync all local data to Supabase DB & global cloud REST API so any mobile phone/tablet sees changes instantly
@@ -181,17 +211,28 @@ export const storeCMS = {
         } catch (e) {}
       }
 
-      // 3. Push to Fixed Shared Public Cloud Relays (All devices worldwide hit these exact same URLs)
+      // 3. Push to Shared Public Cloud Relays
       const headers = { 'Content-Type': 'application/json', 'Accept': 'application/json' };
-      
-      for (const url of FIXED_CLOUD_RELAY_URLS) {
+      const urls = getActiveCloudRelayUrls();
+      let successCount = 0;
+
+      for (const url of urls) {
         try {
-          fetch(url, {
-            method: url.includes('jsonblob') ? 'PUT' : 'POST',
+          const res = await fetch(url, {
+            method: 'PUT',
             headers,
             body: JSON.stringify(payload)
           }).catch(() => null);
+
+          if (res && res.ok) {
+            successCount++;
+          }
         } catch (e) {}
+      }
+
+      // If no endpoint accepted the PUT (e.g. 404), provision a new cloud relay!
+      if (successCount === 0) {
+        await storeCMS.provisionNewCloudRelay(payload);
       }
 
       console.log('✅ Live Store CMS Pushed to Global Shared Cloud Relays!');
@@ -216,8 +257,9 @@ export const storeCMS = {
         } catch (e) {}
       }
 
-      // 2. Fallback to Fixed Shared Cloud Relays
-      for (const url of FIXED_CLOUD_RELAY_URLS) {
+      // 2. Fallback to Shared Cloud Relays
+      const urls = getActiveCloudRelayUrls();
+      for (const url of urls) {
         try {
           const res = await fetch(url, {
             headers: { 'Accept': 'application/json' }
@@ -369,19 +411,31 @@ export const storeCMS = {
 
   // ========== CATEGORIES ==========
   getCategories: () => getLocal(STORAGE_KEYS.CATEGORIES, INITIAL_CATEGORIES),
-  saveCategories: (categories) => setLocal(STORAGE_KEYS.CATEGORIES, categories),
+  saveCategories: (categories) => {
+    setLocal(STORAGE_KEYS.CATEGORIES, categories);
+    storeCMS.syncToCloud();
+  },
 
   // ========== BRANDS ==========
   getBrands: () => getLocal(STORAGE_KEYS.BRANDS, INITIAL_BRANDS),
-  saveBrands: (brands) => setLocal(STORAGE_KEYS.BRANDS, brands),
+  saveBrands: (brands) => {
+    setLocal(STORAGE_KEYS.BRANDS, brands);
+    storeCMS.syncToCloud();
+  },
 
   // ========== BANNERS ==========
   getBanners: () => getLocal(STORAGE_KEYS.BANNERS, INITIAL_HERO_BANNERS),
-  saveBanners: (banners) => setLocal(STORAGE_KEYS.BANNERS, banners),
+  saveBanners: (banners) => {
+    setLocal(STORAGE_KEYS.BANNERS, banners);
+    storeCMS.syncToCloud();
+  },
 
   // ========== COUPONS ==========
   getCoupons: () => getLocal(STORAGE_KEYS.COUPONS, INITIAL_COUPONS),
-  saveCoupons: (coupons) => setLocal(STORAGE_KEYS.COUPONS, coupons),
+  saveCoupons: (coupons) => {
+    setLocal(STORAGE_KEYS.COUPONS, coupons);
+    storeCMS.syncToCloud();
+  },
   validateCoupon: (code, orderAmount) => {
     const coupons = storeCMS.getCoupons();
     const found = coupons.find(c => c.code.toUpperCase() === code.trim().toUpperCase());
@@ -399,11 +453,17 @@ export const storeCMS = {
 
   // ========== BLOGS ==========
   getBlogs: () => getLocal(STORAGE_KEYS.BLOGS, INITIAL_BLOGS),
-  saveBlogs: (blogs) => setLocal(STORAGE_KEYS.BLOGS, blogs),
+  saveBlogs: (blogs) => {
+    setLocal(STORAGE_KEYS.BLOGS, blogs);
+    storeCMS.syncToCloud();
+  },
 
   // ========== STORE LOCATIONS ==========
   getLocations: () => getLocal(STORAGE_KEYS.LOCATIONS, INITIAL_STORE_LOCATIONS),
-  saveLocations: (locations) => setLocal(STORAGE_KEYS.LOCATIONS, locations),
+  saveLocations: (locations) => {
+    setLocal(STORAGE_KEYS.LOCATIONS, locations);
+    storeCMS.syncToCloud();
+  },
 
   // ========== SETTINGS ==========
   getSettings: () => getLocal(STORAGE_KEYS.SETTINGS, DEFAULT_SETTINGS_WITH_EMBEDDED),
@@ -1007,6 +1067,23 @@ Balaji Mobile — Morbi, Gujarat`;
         });
       } catch (e) {}
     }
+  },
+  updateUserProfile: (updatedFields) => {
+    const currentUser = storeCMS.getUser();
+    if (!currentUser) return null;
+    const updatedUser = {
+      ...currentUser,
+      ...updatedFields,
+      updatedAt: new Date().toISOString()
+    };
+    setLocal(STORAGE_KEYS.USER_SESSION, updatedUser);
+    const vaultKey = getUserVaultKey(updatedUser);
+    if (vaultKey) {
+      const currentVault = getLocal(vaultKey, {});
+      setLocal(vaultKey, { ...currentVault, user: updatedUser });
+    }
+    window.dispatchEvent(new Event('bm_cms_update'));
+    return updatedUser;
   },
   logout: () => {
     const currentUser = storeCMS.getUser();

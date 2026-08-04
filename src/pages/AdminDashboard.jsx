@@ -501,9 +501,10 @@ export default function AdminDashboard() {
       {/* CMS Header */}
       <div className="p-6 rounded-3xl bg-cream-50 dark:bg-titanium-900 border border-gold-border/40 dark:border-titanium-800 flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
         <div>
-          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-amber-200 text-amber-900 dark:bg-emerald-glow dark:text-emerald-accent text-xs font-mono font-bold mb-2">
+          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-emerald-500/15 text-emerald-400 border border-emerald-500/30 text-xs font-mono font-bold mb-2">
+            <span className="w-2 h-2 rounded-full bg-emerald-400 animate-ping" />
             <Lock className="w-3.5 h-3.5" />
-            <span>STORE OWNER CMS (PASSTHROUGH ACTIVE)</span>
+            <span>STORE OWNER CMS • 🟢 REALTIME CROSS-DEVICE CLOUD SYNC ACTIVE</span>
           </div>
           <h1 className="font-display font-black text-3xl text-cream-950 dark:text-slate-100">
             Balaji Mobile — Owner Dashboard
