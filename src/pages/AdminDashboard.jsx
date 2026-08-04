@@ -34,6 +34,7 @@ export default function AdminDashboard() {
   // Inventory Search & Filter
   const [productSearch, setProductSearch] = useState('');
   const [selectedBrandFilter, setSelectedBrandFilter] = useState('all');
+  const [selectedCategoryFilter, setSelectedCategoryFilter] = useState('all');
 
   // Product Form Modal State
   const [showProductModal, setShowProductModal] = useState(false);
@@ -573,8 +574,11 @@ export default function AdminDashboard() {
           </div>
 
           <div>
-            <span className="text-[10px] text-[#D4AF37] font-bold uppercase tracking-wider font-mono">{p.brand || 'SMARTPHONE'}</span>
-            <h4 className="font-display font-bold text-[#F8F8F8] text-sm truncate">{p.title || 'Untitled Phone'}</h4>
+            <div className="flex items-center justify-between">
+              <span className="text-[10px] text-[#D4AF37] font-bold uppercase tracking-wider font-mono">{p.brand || 'SMARTPHONE'}</span>
+              <span className="px-2 py-0.5 rounded bg-white/[0.04] border border-white/[0.08] text-[#E7C76A] text-[9px] font-mono font-bold truncate max-w-[50%]">{p.category || 'Flagship Titans'}</span>
+            </div>
+            <h4 className="font-display font-bold text-[#F8F8F8] text-sm truncate mt-0.5">{p.title || 'Untitled Phone'}</h4>
             {p.condition && <p className="text-[#B8BDC8] text-[11px] font-mono mt-0.5 truncate">Specs: <span className="text-[#0FAE72] font-bold">{p.ram || '8GB'} • {p.storage || '256GB'}</span></p>}
           </div>
 
@@ -615,6 +619,7 @@ export default function AdminDashboard() {
   const filteredNewProducts = (products || []).filter(p => {
     if (productSearch && !(p.title || '').toLowerCase().includes(productSearch.toLowerCase()) && !(p.brand || '').toLowerCase().includes(productSearch.toLowerCase())) return false;
     if (selectedBrandFilter !== 'all' && (p.brand || '').toLowerCase() !== selectedBrandFilter.toLowerCase()) return false;
+    if (selectedCategoryFilter !== 'all' && (p.category || '').toLowerCase() !== selectedCategoryFilter.toLowerCase()) return false;
     return true;
   });
 
@@ -1015,6 +1020,16 @@ export default function AdminDashboard() {
                     <option key={b} value={b} className="bg-[#050505]">{b}</option>
                   ))}
                 </select>
+                <select
+                  value={selectedCategoryFilter}
+                  onChange={(e) => setSelectedCategoryFilter(e.target.value)}
+                  className="px-4 py-2.5 rounded-2xl bg-[#0D1117] border border-white/[0.08] text-[#F8F8F8] outline-none focus:border-[#D4AF37]"
+                >
+                  <option value="all" className="bg-[#050505]">All Categories</option>
+                  {categories.map(c => (
+                    <option key={c.id || c.name} value={c.name} className="bg-[#050505]">{c.name}</option>
+                  ))}
+                </select>
               </div>
 
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 font-mono text-xs">
@@ -1255,7 +1270,7 @@ export default function AdminDashboard() {
             </h3>
 
             <form onSubmit={handleSaveProduct} className="space-y-4">
-              <div className="grid grid-cols-3 gap-3">
+              <div className="grid grid-cols-2 gap-3">
                 <div>
                   <label className="block text-[#B8BDC8] font-bold text-xs mb-1">Phone Model Title *</label>
                   <input type="text" required placeholder="e.g. iPhone 15 Pro Max" value={productForm.title} onChange={(e) => setProductForm({ ...productForm, title: e.target.value })} className={inputClass} />
@@ -1266,12 +1281,85 @@ export default function AdminDashboard() {
                     {allBrandsList.map(b => <option key={b} value={b} className="bg-[#050505]">{b}</option>)}
                   </select>
                 </div>
-                <div>
-                  <label className="block text-[#B8BDC8] font-bold text-xs mb-1">Shop Category *</label>
-                  <select value={productForm.category || categories[0]?.name || 'Flagship Titans'} onChange={(e) => setProductForm({ ...productForm, category: e.target.value })} className={inputClass}>
-                    {categories.map(c => <option key={c.id || c.name} value={c.name} className="bg-[#050505]">{c.name}</option>)}
-                  </select>
+              </div>
+
+              {/* Category & Showcase Placement Section */}
+              <div className="p-4 rounded-2xl bg-[#D4AF37]/10 border border-[#D4AF37]/30 space-y-3 font-mono text-xs">
+                <div className="flex items-center justify-between border-b border-[#D4AF37]/20 pb-2">
+                  <span className="font-bold text-[#D4AF37] flex items-center gap-1.5 uppercase tracking-wider text-xs">
+                    <Layers className="w-4 h-4" /> SHOP CATEGORY &amp; HOMEPAGE SHOWCASE PLACEMENT
+                  </span>
+                  <span className="text-[10px] text-[#B8BDC8]">Choose category &amp; homepage badges</span>
                 </div>
+
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                  <div>
+                    <label className="block text-[#F8F8F8] font-bold mb-1">Select Shop Category *</label>
+                    <select 
+                      value={productForm.category || (categories[0]?.name || 'Flagship Titans')} 
+                      onChange={(e) => setProductForm({ ...productForm, category: e.target.value })} 
+                      className={inputClass}
+                    >
+                      {categories.map(c => <option key={c.id || c.name} value={c.name} className="bg-[#050505]">{c.name}</option>)}
+                    </select>
+                  </div>
+
+                  <div>
+                    <label className="block text-[#F8F8F8] font-bold mb-1">Condition / Warranty Note *</label>
+                    <input 
+                      type="text" 
+                      required 
+                      placeholder="e.g. Brand New Sealed Box - 1 Year Official Warranty" 
+                      value={productForm.condition || ''} 
+                      onChange={(e) => setProductForm({ ...productForm, condition: e.target.value })} 
+                      className={inputClass} 
+                    />
+                  </div>
+                </div>
+
+                {!isSecondHandModal && (
+                  <div className="pt-2 border-t border-[#D4AF37]/20 space-y-1.5">
+                    <span className="block text-[11px] text-[#D4AF37] font-bold">Homepage Section Badges (Check to display phone in homepage sections):</span>
+                    <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 text-[11px]">
+                      <label className="flex items-center gap-2 p-2 rounded-xl bg-white/[0.04] border border-white/[0.08] cursor-pointer hover:border-[#D4AF37]">
+                        <input 
+                          type="checkbox" 
+                          checked={Boolean(productForm.isNewArrival)} 
+                          onChange={(e) => setProductForm({ ...productForm, isNewArrival: e.target.checked })} 
+                          className="accent-[#D4AF37]" 
+                        />
+                        <span>✨ New Arrival</span>
+                      </label>
+                      <label className="flex items-center gap-2 p-2 rounded-xl bg-white/[0.04] border border-white/[0.08] cursor-pointer hover:border-rose-500">
+                        <input 
+                          type="checkbox" 
+                          checked={Boolean(productForm.isFlashSale)} 
+                          onChange={(e) => setProductForm({ ...productForm, isFlashSale: e.target.checked })} 
+                          className="accent-rose-500" 
+                        />
+                        <span>⚡ Flash Sale</span>
+                      </label>
+                      <label className="flex items-center gap-2 p-2 rounded-xl bg-white/[0.04] border border-white/[0.08] cursor-pointer hover:border-[#0FAE72]">
+                        <input 
+                          type="checkbox" 
+                          checked={Boolean(productForm.isFeatured)} 
+                          onChange={(e) => setProductForm({ ...productForm, isFeatured: e.target.checked })} 
+                          className="accent-[#0FAE72]" 
+                        />
+                        <span>🌟 Featured Titan</span>
+                      </label>
+                      <label className="flex items-center gap-2 p-2 rounded-xl bg-white/[0.04] border border-white/[0.08] cursor-pointer hover:border-[#0FAE72]">
+                        <input 
+                          type="checkbox" 
+                          checked={Boolean(productForm.isTrending)} 
+                          onChange={(e) => setProductForm({ ...productForm, isTrending: e.target.checked })} 
+                          className="accent-[#0FAE72]" 
+                        />
+                        <span>🔥 Trending Deal</span>
+                      </label>
+                    </div>
+                  </div>
+                )}
               </div>
 
               <div className="grid grid-cols-3 gap-3">
