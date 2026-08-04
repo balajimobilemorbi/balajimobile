@@ -42,10 +42,36 @@ const DEFAULT_SETTINGS_WITH_EMBEDDED = {
   storeLogoUrl: EMBEDDED_BM_LOGO
 };
 
+const repairCorruptedStorage = () => {
+  try {
+    const keys = [STORAGE_KEYS.PRODUCTS, STORAGE_KEYS.SECONDHAND, STORAGE_KEYS.ORDERS];
+    for (const key of keys) {
+      const raw = localStorage.getItem(key);
+      if (!raw || raw === 'undefined' || raw === 'null') {
+        localStorage.removeItem(key);
+      } else {
+        try {
+          const parsed = JSON.parse(raw);
+          if (!Array.isArray(parsed) || parsed.some(p => !p || typeof p !== 'object')) {
+            localStorage.removeItem(key);
+          }
+        } catch (e) {
+          localStorage.removeItem(key);
+        }
+      }
+    }
+  } catch (e) {}
+};
+
+// Auto-run self-healing repair on module load
+repairCorruptedStorage();
+
 const getLocal = (key, fallback) => {
   try {
     const data = localStorage.getItem(key);
-    return data ? JSON.parse(data) : fallback;
+    if (!data || data === 'undefined' || data === 'null') return fallback;
+    const parsed = JSON.parse(data);
+    return parsed ?? fallback;
   } catch (e) {
     console.error(`Error reading ${key} from localStorage`, e);
     return fallback;
