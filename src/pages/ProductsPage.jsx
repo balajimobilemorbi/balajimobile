@@ -29,8 +29,15 @@ export default function ProductsPage() {
   }, []);
 
   // Filter logic
-  const filteredProducts = products.filter(p => {
-    if (searchQuery && !p.title.toLowerCase().includes(searchQuery.toLowerCase()) && !p.brand.toLowerCase().includes(searchQuery.toLowerCase())) {
+  const filteredProducts = (products || []).filter(p => {
+    if (!p) return false;
+    const title = (p.title || '').toLowerCase();
+    const brand = (p.brand || '').toLowerCase();
+    const ram = (p.ram || '').toLowerCase();
+    const storage = (p.storage || '').toLowerCase();
+    const price = p.bmPrice || 0;
+
+    if (searchQuery && !title.includes(searchQuery.toLowerCase()) && !brand.includes(searchQuery.toLowerCase())) {
       return false;
     }
     if (selectedCategory !== 'all') {
@@ -39,26 +46,28 @@ export default function ProductsPage() {
         // fallback match
       }
     }
-    if (selectedBrand !== 'all' && p.brand.toLowerCase() !== selectedBrand.toLowerCase()) {
+    if (selectedBrand !== 'all' && brand !== selectedBrand.toLowerCase()) {
       return false;
     }
-    if (selectedRam !== 'all' && !p.ram.includes(selectedRam)) {
+    if (selectedRam !== 'all' && !ram.includes(selectedRam.toLowerCase())) {
       return false;
     }
-    if (selectedStorage !== 'all' && !p.storage.includes(selectedStorage)) {
+    if (selectedStorage !== 'all' && !storage.includes(selectedStorage.toLowerCase())) {
       return false;
     }
-    if (p.bmPrice > maxPrice) {
+    if (price > maxPrice) {
       return false;
     }
     return true;
   }).sort((a, b) => {
-    if (sortBy === 'price-low') return a.bmPrice - b.bmPrice;
-    if (sortBy === 'price-high') return b.bmPrice - a.bmPrice;
-    if (sortBy === 'rating') return b.rating - a.rating;
-    if (sortBy === 'newest') return (b.isNewArrival ? 1 : 0) - (a.isNewArrival ? 1 : 0) || b.id.localeCompare(a.id);
+    const priceA = a?.bmPrice || 0;
+    const priceB = b?.bmPrice || 0;
+    if (sortBy === 'price-low') return priceA - priceB;
+    if (sortBy === 'price-high') return priceB - priceA;
+    if (sortBy === 'rating') return (b?.rating || 0) - (a?.rating || 0);
+    if (sortBy === 'newest') return (b?.isNewArrival ? 1 : 0) - (a?.isNewArrival ? 1 : 0) || (b?.id || '').localeCompare(a?.id || '');
     // Default Featured: New Arrivals prepended at upper top side
-    return (b.isNewArrival ? 1 : 0) - (a.isNewArrival ? 1 : 0);
+    return (b?.isNewArrival ? 1 : 0) - (a?.isNewArrival ? 1 : 0);
   });
 
   const handleResetFilters = () => {
