@@ -14,25 +14,25 @@ import { EMBEDDED_PAYMENT_QR, EMBEDDED_BM_LOGO } from '../assets/embeddedAssets'
 import { supabase, isSupabaseConfigured } from './supabaseClient';
 
 const STORAGE_KEYS = {
-  PRODUCTS: 'bm_products_v4',
-  SECONDHAND: 'bm_secondhand_v4',
-  CATEGORIES: 'bm_categories_v4',
-  BRANDS: 'bm_brands_v4',
-  BANNERS: 'bm_banners_v4',
-  COUPONS: 'bm_coupons_v4',
-  BLOGS: 'bm_blogs_v4',
-  TESTIMONIALS: 'bm_testimonials_v4',
-  LOCATIONS: 'bm_locations_v4',
-  SETTINGS: 'bm_settings_v4',
-  ORDERS: 'bm_orders_v4',
-  USED_UTRS: 'bm_used_utrs_v4',
-  CART: 'bm_cart_v4',
-  WISHLIST: 'bm_wishlist_v4',
-  COMPARE: 'bm_compare_v4',
-  REVIEWS: 'bm_reviews_v4',
-  REWARD_POINTS: 'bm_rewards_v4',
-  USER_SESSION: 'bm_user_session_v4',
-  CLOUD_SYNC_TIMESTAMP: 'bm_cloud_ts_v4'
+  PRODUCTS: 'bm_products_v5',
+  SECONDHAND: 'bm_secondhand_v5',
+  CATEGORIES: 'bm_categories_v5',
+  BRANDS: 'bm_brands_v5',
+  BANNERS: 'bm_banners_v5',
+  COUPONS: 'bm_coupons_v5',
+  BLOGS: 'bm_blogs_v5',
+  TESTIMONIALS: 'bm_testimonials_v5',
+  LOCATIONS: 'bm_locations_v5',
+  SETTINGS: 'bm_settings_v5',
+  ORDERS: 'bm_orders_v5',
+  USED_UTRS: 'bm_used_utrs_v5',
+  CART: 'bm_cart_v5',
+  WISHLIST: 'bm_wishlist_v5',
+  COMPARE: 'bm_compare_v5',
+  REVIEWS: 'bm_reviews_v5',
+  REWARD_POINTS: 'bm_rewards_v5',
+  USER_SESSION: 'bm_user_session_v5',
+  CLOUD_SYNC_TIMESTAMP: 'bm_cloud_ts_v5'
 };
 
 // Default settings with EMBEDDED QR code so it NEVER fails or 404s on any device!

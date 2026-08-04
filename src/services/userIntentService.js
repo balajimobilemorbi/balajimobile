@@ -1,7 +1,7 @@
 import { storeCMS } from './storeCMS';
 
-const INTENT_KEY = 'bm_user_intents_v4';
-const USER_PHONE_KEY = 'bm_active_user_phone_v4';
+const INTENT_KEY = 'bm_user_intents_v5';
+const USER_PHONE_KEY = 'bm_active_user_phone_v5';
 
 const getStorage = (key, fallback) => {
   try {
