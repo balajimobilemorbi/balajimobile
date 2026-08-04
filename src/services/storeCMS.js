@@ -125,13 +125,17 @@ export const storeCMS = {
   // Apply incoming Cloud Snapshot payload and refresh UI
   applyCloudPayload: (rawPayload) => {
     const payload = rawPayload?.value || rawPayload?.payload || rawPayload;
-    if (!payload || !Array.isArray(payload.products) || payload.products.length === 0) return;
+    if (!payload || !Array.isArray(payload.products)) return;
+
+    const validProducts = payload.products.filter(p => p && p.id && p.title);
+    if (validProducts.length === 0) return;
 
     const localTs = localStorage.getItem(STORAGE_KEYS.CLOUD_SYNC_TIMESTAMP) || '';
     if (!localTs || (payload.updatedAt && payload.updatedAt >= localTs)) {
-      localStorage.setItem(STORAGE_KEYS.PRODUCTS, JSON.stringify(payload.products));
+      localStorage.setItem(STORAGE_KEYS.PRODUCTS, JSON.stringify(validProducts));
       if (Array.isArray(payload.secondHandProducts)) {
-        localStorage.setItem(STORAGE_KEYS.SECONDHAND, JSON.stringify(payload.secondHandProducts));
+        const validSecondHand = payload.secondHandProducts.filter(p => p && p.id && p.title);
+        localStorage.setItem(STORAGE_KEYS.SECONDHAND, JSON.stringify(validSecondHand));
       }
       if (payload.settings) {
         localStorage.setItem(STORAGE_KEYS.SETTINGS, JSON.stringify(payload.settings));
