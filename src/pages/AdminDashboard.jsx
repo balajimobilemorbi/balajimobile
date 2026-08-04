@@ -1478,7 +1478,7 @@ export default function AdminDashboard() {
                     </div>
 
                     <a
-                      href={`https://wa.me/91${prof.phone}?text=${encodeURIComponent(`Hi! We noticed your search on Balaji Mobile for ${prof.searches?.[0] || 'smartphones'}. Check out our newest stock here: http://localhost:3000/products`)}`}
+                      href={`https://wa.me/91${prof.phone}?text=${encodeURIComponent(`Hi! We noticed your search on Balaji Mobile for ${prof.searches?.[0] || 'smartphones'}. Check out our newest stock here: https://balajimobile.store/products`)}`}
                       target="_blank"
                       rel="noopener noreferrer"
                       className="px-3.5 py-2 rounded-xl bg-emerald-500 hover:bg-emerald-400 text-titanium-950 font-bold text-xs flex items-center gap-1.5 transition shadow-md"

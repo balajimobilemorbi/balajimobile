@@ -889,7 +889,7 @@ ${itemsSummary}
 👉 *OWNER ACTION:*
 1. Check GPay / Bank App for payment of ₹${order.totalAmount.toLocaleString('en-IN')}
 2. If payment received → Pack & Dispatch via Shiprocket / BlueDart
-3. Confirm / Manage in Admin Panel: http://localhost:3000/admin`;
+3. Confirm / Manage in Admin Panel: https://balajimobile.store/admin`;
 
     const customerPhoneClean = (order.phone || '').replace(/[^0-9]/g, '');
     const fullCustomerPhone = customerPhoneClean.startsWith('91') ? customerPhoneClean : `91${customerPhoneClean}`;

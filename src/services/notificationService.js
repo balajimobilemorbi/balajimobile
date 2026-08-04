@@ -147,7 +147,7 @@ ${itemsText}
 💳 *PAYMENT METHOD:* ${order.paymentMethod}
 📊 *STATUS:* ${order.paymentStatus || 'Paid'}
 
-🔗 Admin Panel: http://localhost:3000/admin`;
+🔗 Admin Panel: https://balajimobile.store/admin`;
 
     // ── 2. CUSTOMER CONFIRMATION PAYLOAD ──────────────────────────────────
     const customerMessage = 
@@ -199,7 +199,7 @@ ${order.address}, ${order.city}, ${order.district}, ${order.state} - ${order.pin
             "Delivery Address": `${order.address}, ${order.city || ''}, ${order.district || ''}, ${order.state || ''} - ${order.pincode}`,
             "Estimated Delivery": "2-3 Business Days via Shiprocket / BlueDart Insured Air",
             "Store Support Phone": "+91 79906 48756",
-            "PDF Invoice Download": `Log into http://localhost:3000/account to download official PDF Tax Invoice anytime.`
+            "PDF Invoice Download": `Log into https://balajimobile.store/account to download official PDF Tax Invoice anytime.`
           })
         }).then(res => res.json())
           .then(data => console.log('✅ Real Official Tax Invoice Email Sent to Customer:', customerEmail, data))
@@ -298,7 +298,7 @@ We noticed you recently searched or looked at smartphones on Balaji Mobile!
 • Special BM Price: ₹${prodPrice.toLocaleString('en-IN')}
 
 🛒 View Product Live:
-http://localhost:3000/product/${newProduct.id}
+https://balajimobile.store/product/${newProduct.id}
 
 📞 Balaji Mobile Morbi: +91 79906 48756`;
 
