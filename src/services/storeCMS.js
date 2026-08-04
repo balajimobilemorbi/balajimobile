@@ -286,8 +286,42 @@ export const storeCMS = {
     }
   },
 
+  // Helper to normalize any product object so it is 100% crash-proof across all components
+  normalizeProduct: (p) => {
+    if (!p || typeof p !== 'object') return null;
+
+    let safeImages = ['https://images.unsplash.com/photo-1592750475338-74b7b21085ab?q=80&w=1000&auto=format&fit=crop'];
+    if (p.images) {
+      if (Array.isArray(p.images) && p.images.length > 0) {
+        const filtered = p.images.filter(img => img && typeof img === 'string' && img.trim().length > 0);
+        if (filtered.length > 0) safeImages = filtered;
+      } else if (typeof p.images === 'string' && p.images.trim().length > 0) {
+        safeImages = [p.images.trim()];
+      }
+    }
+
+    return {
+      ...p,
+      id: p.id || `bm-prod-${Date.now()}`,
+      title: p.title || 'Smartphone',
+      brand: p.brand || 'Apple',
+      category: p.category || 'Flagship Titans',
+      ram: p.ram || '8GB',
+      storage: p.storage || '256GB',
+      color: p.color || 'Natural Titanium',
+      bmPrice: Number(p.bmPrice) || 0,
+      marketPrice: Number(p.marketPrice) || Number(p.bmPrice) || 0,
+      stock: typeof p.stock === 'number' ? p.stock : 10,
+      images: safeImages
+    };
+  },
+
   // ========== NEW PRODUCTS ==========
-  getProducts: () => getLocal(STORAGE_KEYS.PRODUCTS, INITIAL_PRODUCTS),
+  getProducts: () => {
+    const raw = getLocal(STORAGE_KEYS.PRODUCTS, INITIAL_PRODUCTS);
+    if (!Array.isArray(raw)) return INITIAL_PRODUCTS.map(storeCMS.normalizeProduct).filter(Boolean);
+    return raw.map(storeCMS.normalizeProduct).filter(Boolean);
+  },
 
   getProductById: (id) => {
     const products = storeCMS.getProducts();
@@ -355,7 +389,11 @@ export const storeCMS = {
   },
 
   // ========== SECOND HAND PRODUCTS ==========
-  getSecondHandProducts: () => getLocal(STORAGE_KEYS.SECONDHAND, INITIAL_SECONDHAND_PRODUCTS),
+  getSecondHandProducts: () => {
+    const raw = getLocal(STORAGE_KEYS.SECONDHAND, INITIAL_SECONDHAND_PRODUCTS);
+    if (!Array.isArray(raw)) return INITIAL_SECONDHAND_PRODUCTS.map(storeCMS.normalizeProduct).filter(Boolean);
+    return raw.map(storeCMS.normalizeProduct).filter(Boolean);
+  },
 
   getSecondHandProductById: (id) => {
     const products = storeCMS.getSecondHandProducts();
