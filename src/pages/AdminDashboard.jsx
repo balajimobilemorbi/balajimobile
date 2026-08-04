@@ -194,6 +194,13 @@ export default function AdminDashboard() {
     setShowProductModal(true);
   };
 
+  const safeArrayJoin = (val) => {
+    if (!val) return '';
+    if (Array.isArray(val)) return val.join('\n');
+    if (typeof val === 'string') return val;
+    return String(val);
+  };
+
   const handleOpenEditProduct = (prod, isSecondHand = false) => {
     if (!prod) return;
     setEditingProductId(prod.id);
@@ -201,8 +208,8 @@ export default function AdminDashboard() {
     setProductForm({
       ...prod,
       category: prod.category || categories[0]?.name || 'Flagship Titans',
-      imagesText: prod.images ? prod.images.join('\n') : '',
-      frames360Text: prod.frames360 ? prod.frames360.join('\n') : '',
+      imagesText: safeArrayJoin(prod.images),
+      frames360Text: safeArrayJoin(prod.frames360),
       batteryHealth: prod.batteryHealth || '95%',
       deviceAge: prod.deviceAge || '6 Months Old',
       conditionBadge: prod.conditionBadge || 'Superb (9/10)',
@@ -211,10 +218,10 @@ export default function AdminDashboard() {
       hasBox: prod.hasBox || 'Yes - Box & Cable Included'
     });
 
-    if (prod.variants && prod.variants.length > 0) {
+    if (prod.variants && Array.isArray(prod.variants) && prod.variants.length > 0) {
       setVariantsList(prod.variants.map(v => ({
         ...v,
-        imagesText: v.images ? v.images.join('\n') : (v.imagesText || '')
+        imagesText: safeArrayJoin(v.images || v.imagesText)
       })));
     } else {
       setVariantsList([
@@ -226,7 +233,7 @@ export default function AdminDashboard() {
           bmPrice: prod.bmPrice || 84999,
           marketPrice: prod.marketPrice || 99999,
           stock: prod.stock || 10,
-          imagesText: prod.images ? prod.images.join('\n') : ''
+          imagesText: safeArrayJoin(prod.images)
         }
       ]);
     }
@@ -553,10 +560,20 @@ export default function AdminDashboard() {
   // Crash-Proof Admin Product Card Component
   const AdminProductCard = ({ p, isSecondHand = false }) => {
     if (!p) return null;
-    const imgUrl = (p.images && p.images.length > 0 && p.images[0])
-      ? p.images[0]
-      : 'https://images.unsplash.com/photo-1592750475338-74b7b21085ab?q=80&w=1000&auto=format&fit=crop';
-    const priceFormatted = (p.bmPrice || 0).toLocaleString('en-IN');
+
+    let imgUrl = 'https://images.unsplash.com/photo-1592750475338-74b7b21085ab?q=80&w=1000&auto=format&fit=crop';
+    if (p.images) {
+      if (Array.isArray(p.images) && p.images.length > 0 && typeof p.images[0] === 'string' && p.images[0].trim().length > 0) {
+        imgUrl = p.images[0].trim();
+      } else if (typeof p.images === 'string' && p.images.trim().length > 0) {
+        imgUrl = p.images.trim();
+      }
+    }
+
+    const bmPriceNum = Number(p.bmPrice) || 0;
+    const marketPriceNum = Number(p.marketPrice) || 0;
+    const priceFormatted = bmPriceNum.toLocaleString('en-IN');
+    const marketPriceFormatted = marketPriceNum.toLocaleString('en-IN');
 
     return (
       <div className="p-5 rounded-[24px] bg-[#0D1117] border border-white/[0.08] space-y-3.5 flex flex-col justify-between hover:border-[#D4AF37]/50 transition shadow-lg group">
@@ -585,11 +602,11 @@ export default function AdminDashboard() {
           <div className="flex items-center justify-between pt-2 border-t border-white/[0.08] font-mono">
             <div>
               <span className="font-display font-black text-[#0FAE72] text-sm">₹{priceFormatted}</span>
-              {p.marketPrice > (p.bmPrice || 0) && (
-                <span className="text-[10px] text-[#B8BDC8] line-through ml-2">₹{p.marketPrice.toLocaleString('en-IN')}</span>
+              {marketPriceNum > bmPriceNum && (
+                <span className="text-[10px] text-[#B8BDC8] line-through ml-2">₹{marketPriceFormatted}</span>
               )}
             </div>
-            {p.variants && p.variants.length > 1 && (
+            {p.variants && Array.isArray(p.variants) && p.variants.length > 1 && (
               <span className="px-2 py-0.5 rounded text-[10px] bg-[#D4AF37]/15 text-[#E7C76A] border border-[#D4AF37]/30">
                 {p.variants.length} Variants
               </span>
