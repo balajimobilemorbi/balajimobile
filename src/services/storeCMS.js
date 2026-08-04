@@ -74,6 +74,8 @@ const DEFAULT_CLOUD_RELAY_URL = 'https://jsonblob.com/api/jsonBlob/019fcbf9-5a79
 const getActiveCloudRelayUrls = () => {
   const customUrl = localStorage.getItem(DYNAMIC_RELAY_KEY);
   const urls = [
+    '/.netlify/functions/store-sync',
+    '/api/store-sync',
     customUrl,
     DEFAULT_CLOUD_RELAY_URL
   ].filter(Boolean);
