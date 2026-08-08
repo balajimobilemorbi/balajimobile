@@ -427,6 +427,8 @@ export const storeCMS = {
     const newProduct = {
       ...product,
       id: product.id || `bm-prod-${Date.now()}`,
+      isNewArrival: typeof product.isNewArrival === 'boolean' ? product.isNewArrival : true,
+      isTrending: typeof product.isTrending === 'boolean' ? product.isTrending : true,
       rating: product.rating || 5.0,
       reviewsCount: product.reviewsCount || 0,
       discount: Math.round(((product.marketPrice - product.bmPrice) / product.marketPrice) * 100),
@@ -492,6 +494,7 @@ export const storeCMS = {
     const newProduct = {
       ...product,
       id: product.id || `bm-sh-${Date.now()}`,
+      isSecondHand: true,
       rating: product.rating || 4.0,
       reviewsCount: product.reviewsCount || 0,
       discount: Math.round(((product.marketPrice - product.bmPrice) / product.marketPrice) * 100),
