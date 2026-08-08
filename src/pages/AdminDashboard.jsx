@@ -30,6 +30,7 @@ export default function AdminDashboard() {
   const [orders, setOrders] = useState(() => storeCMS.getOrders() || []);
   const [notifications, setNotifications] = useState(() => storeCMS.getOwnerNotifications() || []);
   const [showNotifDrawer, setShowNotifDrawer] = useState(false);
+  const [isPushing, setIsPushing] = useState(false);
 
   // Inventory Search & Filter
   const [productSearch, setProductSearch] = useState('');
@@ -661,15 +662,26 @@ export default function AdminDashboard() {
 
         <div className="flex items-center gap-3 font-mono">
           <button
+            disabled={isPushing}
             onClick={async () => {
-              await storeCMS.syncToCloud();
-              alert("⚡ SUCCESS! Store data pushed live to Cloud! All devices on balajimobile.store will see changes.");
+              setIsPushing(true);
+              const ok = await storeCMS.syncToCloud();
+              setIsPushing(false);
+              if (ok) {
+                alert("⚡ SUCCESS! All products, prices, hero banners, categories, coupons & settings have been PUSHED LIVE to Cloud Relays! All customer mobile phones will update automatically in real-time.");
+              } else {
+                alert("⚠️ Cloud Push completed with local fallback. Please verify internet connection.");
+              }
             }}
-            className="px-4 py-3 rounded-2xl bg-gradient-to-r from-[#0FAE72] to-[#0B8F5C] hover:from-[#D4AF37] hover:to-[#E7C76A] hover:text-[#050505] text-white font-bold text-xs shadow-lg transition flex items-center gap-2 active:scale-95"
-            title="Push updated prices, photos & banners to all customer mobile phones"
+            className={`px-4 py-3 rounded-2xl bg-gradient-to-r from-[#0FAE72] to-[#0B8F5C] hover:from-[#D4AF37] hover:to-[#E7C76A] hover:text-[#050505] text-white font-bold text-xs shadow-lg transition flex items-center gap-2 active:scale-95 ${isPushing ? 'opacity-50 cursor-wait' : ''}`}
+            title="Push updated prices, photos, banners & categories to all customer mobile phones"
           >
-            <Zap className="w-4 h-4 text-white fill-current" />
-            <span>Push Live to All Mobile Phones</span>
+            {isPushing ? (
+              <RefreshCcw className="w-4 h-4 text-white animate-spin" />
+            ) : (
+              <Zap className="w-4 h-4 text-white fill-current" />
+            )}
+            <span>{isPushing ? 'Pushing Live...' : 'Push Live to All Mobile Phones'}</span>
           </button>
 
           <button

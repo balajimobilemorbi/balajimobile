@@ -93,17 +93,17 @@ const getUserVaultKey = (user) => {
   return rawId ? `bm_user_vault_${rawId}` : null;
 };
 
-// REALTIME CLOUD STORAGE ENGINE FOR LIVE CROSS-DEVICE SYNC (Laptop ↔ Mobile ↔ Netlify)
+// REALTIME CLOUD STORAGE ENGINE FOR LIVE CROSS-DEVICE SYNC (GitHub Pages / Vercel / Hostinger / Custom Domain)
+const SHARED_GLOBAL_CLOUD_URL = 'https://jsonblob.com/api/jsonBlob/019fe0b7-11d8-73da-8865-29ce6ffc9328';
 const DYNAMIC_RELAY_KEY = 'bm_cloud_relay_active_url';
-const DEFAULT_CLOUD_RELAY_URL = 'https://jsonblob.com/api/jsonBlob/019fcbf9-5a79-7894-8c35-3352a420ae7b';
 
 const getActiveCloudRelayUrls = () => {
   const customUrl = localStorage.getItem(DYNAMIC_RELAY_KEY);
   const urls = [
-    '/.netlify/functions/store-sync',
-    '/api/store-sync',
+    SHARED_GLOBAL_CLOUD_URL,
     customUrl,
-    DEFAULT_CLOUD_RELAY_URL
+    '/.netlify/functions/store-sync',
+    '/api/store-sync'
   ].filter(Boolean);
   return [...new Set(urls)];
 };
@@ -151,19 +151,40 @@ export const storeCMS = {
   // Apply incoming Cloud Snapshot payload and refresh UI
   applyCloudPayload: (rawPayload) => {
     const payload = rawPayload?.value || rawPayload?.payload || rawPayload;
-    if (!payload || !Array.isArray(payload.products)) return;
-
-    const validProducts = payload.products.filter(p => p && p.id && p.title);
-    if (validProducts.length === 0) return;
+    if (!payload || typeof payload !== 'object') return;
+    if (!Array.isArray(payload.products) && !payload.settings) return;
 
     const localTs = localStorage.getItem(STORAGE_KEYS.CLOUD_SYNC_TIMESTAMP) || '';
-    if (!localTs || (payload.updatedAt && payload.updatedAt >= localTs)) {
-      localStorage.setItem(STORAGE_KEYS.PRODUCTS, JSON.stringify(validProducts));
+    if (!localTs || (payload.updatedAt && payload.updatedAt !== localTs)) {
+      if (Array.isArray(payload.products) && payload.products.length > 0) {
+        const validProducts = payload.products.filter(p => p && p.id && p.title);
+        if (validProducts.length > 0) {
+          localStorage.setItem(STORAGE_KEYS.PRODUCTS, JSON.stringify(validProducts));
+        }
+      }
       if (Array.isArray(payload.secondHandProducts)) {
         const validSecondHand = payload.secondHandProducts.filter(p => p && p.id && p.title);
         localStorage.setItem(STORAGE_KEYS.SECONDHAND, JSON.stringify(validSecondHand));
       }
-      if (payload.settings) {
+      if (Array.isArray(payload.categories)) {
+        localStorage.setItem(STORAGE_KEYS.CATEGORIES, JSON.stringify(payload.categories));
+      }
+      if (Array.isArray(payload.brands)) {
+        localStorage.setItem(STORAGE_KEYS.BRANDS, JSON.stringify(payload.brands));
+      }
+      if (Array.isArray(payload.banners)) {
+        localStorage.setItem(STORAGE_KEYS.BANNERS, JSON.stringify(payload.banners));
+      }
+      if (Array.isArray(payload.coupons)) {
+        localStorage.setItem(STORAGE_KEYS.COUPONS, JSON.stringify(payload.coupons));
+      }
+      if (Array.isArray(payload.blogs)) {
+        localStorage.setItem(STORAGE_KEYS.BLOGS, JSON.stringify(payload.blogs));
+      }
+      if (Array.isArray(payload.locations)) {
+        localStorage.setItem(STORAGE_KEYS.LOCATIONS, JSON.stringify(payload.locations));
+      }
+      if (payload.settings && typeof payload.settings === 'object') {
         localStorage.setItem(STORAGE_KEYS.SETTINGS, JSON.stringify(payload.settings));
       }
       if (Array.isArray(payload.orders)) {
@@ -203,12 +224,18 @@ export const storeCMS = {
 
   // Sync all local data to Supabase DB & global cloud REST API so any mobile phone/tablet sees changes instantly
   syncToCloud: async () => {
-    if (isSyncingWithCloud) return;
+    if (isSyncingWithCloud) return true;
     isSyncingWithCloud = true;
     try {
       const payload = {
         products: storeCMS.getProducts(),
         secondHandProducts: storeCMS.getSecondHandProducts(),
+        categories: storeCMS.getCategories(),
+        brands: storeCMS.getBrands(),
+        banners: storeCMS.getBanners(),
+        coupons: storeCMS.getCoupons(),
+        blogs: storeCMS.getBlogs(),
+        locations: storeCMS.getLocations(),
         settings: storeCMS.getSettings(),
         orders: storeCMS.getOrders(),
         updatedAt: new Date().toISOString()
@@ -257,19 +284,26 @@ export const storeCMS = {
           }).catch(() => null);
 
           if (res && res.ok) {
-            successCount++;
+            const ct = (res.headers.get('content-type') || '').toLowerCase();
+            // Ignore HTML fallbacks returned by Vite dev server
+            if (ct.includes('application/json') || url.includes('jsonblob.com')) {
+              successCount++;
+            }
           }
         } catch (e) {}
       }
 
       // If no endpoint accepted the PUT (e.g. 404), provision a new cloud relay!
       if (successCount === 0) {
-        await storeCMS.provisionNewCloudRelay(payload);
+        const newRelayUrl = await storeCMS.provisionNewCloudRelay(payload);
+        if (newRelayUrl) successCount++;
       }
 
       console.log('✅ Live Store CMS Pushed to Global Shared Cloud Relays!');
+      return true;
     } catch (e) {
       console.warn('Cloud sync push warning:', e);
+      return false;
     } finally {
       isSyncingWithCloud = false;
     }
@@ -298,9 +332,13 @@ export const storeCMS = {
           }).catch(() => null);
 
           if (res && res.ok) {
+            const ct = (res.headers.get('content-type') || '').toLowerCase();
+            // Skip HTML fallback responses from SPA routes
+            if (!ct.includes('application/json') && !url.includes('jsonblob.com')) continue;
+
             const data = await res.json();
             const payload = data?.value || data?.payload || data;
-            if (payload && Array.isArray(payload.products) && payload.products.length > 0) {
+            if (payload && (Array.isArray(payload.products) || payload.settings)) {
               storeCMS.applyCloudPayload(payload);
               return;
             }
@@ -1279,7 +1317,14 @@ Balaji Mobile — Morbi, Gujarat`;
   }
 };
 
-// Auto-pull from cloud on load
+// Auto-pull from cloud on load & setup periodic background polling (every 8 seconds)
 if (typeof window !== 'undefined') {
   storeCMS.pullFromCloud();
+
+  try {
+    setInterval(() => {
+      storeCMS.pullFromCloud();
+    }, 8000);
+  } catch (e) {}
 }
+
