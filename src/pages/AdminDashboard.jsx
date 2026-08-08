@@ -322,15 +322,46 @@ export default function AdminDashboard() {
     syncState();
   };
 
+  const compressImage = (dataUrl) => {
+    return new Promise((resolve) => {
+      if (!dataUrl || !dataUrl.startsWith('data:image')) return resolve(dataUrl);
+      const img = new Image();
+      img.onload = () => {
+        const maxWidth = 600;
+        const maxHeight = 600;
+        let w = img.width;
+        let h = img.height;
+        if (w > maxWidth || h > maxHeight) {
+          if (w > h) {
+            h = Math.round((h * maxWidth) / w);
+            w = maxWidth;
+          } else {
+            w = Math.round((w * maxHeight) / h);
+            h = maxHeight;
+          }
+        }
+        const canvas = document.createElement('canvas');
+        canvas.width = w;
+        canvas.height = h;
+        const ctx = canvas.getContext('2d');
+        ctx.drawImage(img, 0, 0, w, h);
+        resolve(canvas.toDataURL('image/jpeg', 0.7));
+      };
+      img.onerror = () => resolve(dataUrl);
+      img.src = dataUrl;
+    });
+  };
+
   const handleImageFileUpload = (e) => {
     const files = Array.from(e.target.files || []);
     files.forEach(file => {
       const reader = new FileReader();
-      reader.onload = (event) => {
-        const base64 = event.target.result;
+      reader.onload = async (event) => {
+        const rawBase64 = event.target.result;
+        const compressed = await compressImage(rawBase64);
         setProductForm(prev => ({
           ...prev,
-          imagesText: prev.imagesText ? `${prev.imagesText}\n${base64}` : base64
+          imagesText: prev.imagesText ? `${prev.imagesText}\n${compressed}` : compressed
         }));
       };
       reader.readAsDataURL(file);
@@ -356,11 +387,12 @@ export default function AdminDashboard() {
       if (item.type.indexOf('image') !== -1) {
         const blob = item.getAsFile();
         const reader = new FileReader();
-        reader.onload = (event) => {
-          const base64 = event.target.result;
+        reader.onload = async (event) => {
+          const rawBase64 = event.target.result;
+          const compressed = await compressImage(rawBase64);
           setProductForm(prev => ({
             ...prev,
-            imagesText: prev.imagesText ? `${prev.imagesText}\n${base64}` : base64
+            imagesText: prev.imagesText ? `${prev.imagesText}\n${compressed}` : compressed
           }));
         };
         reader.readAsDataURL(blob);

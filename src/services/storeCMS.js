@@ -227,7 +227,24 @@ export const storeCMS = {
     if (isSyncingWithCloud) return true;
     isSyncingWithCloud = true;
     try {
-      const payload = {
+      const sanitizeProductList = (list) => {
+        if (!Array.isArray(list)) return [];
+        return list.map(p => {
+          if (!p) return p;
+          let images = p.images;
+          if (Array.isArray(images)) {
+            images = images.map(img => {
+              if (typeof img === 'string' && img.length > 50000) {
+                return 'https://images.unsplash.com/photo-1592750475338-74b7b21085ab?q=80&w=1000&auto=format&fit=crop';
+              }
+              return img;
+            });
+          }
+          return { ...p, images };
+        });
+      };
+
+      const rawPayload = {
         products: storeCMS.getProducts(),
         secondHandProducts: storeCMS.getSecondHandProducts(),
         categories: storeCMS.getCategories(),
@@ -239,6 +256,12 @@ export const storeCMS = {
         settings: storeCMS.getSettings(),
         orders: storeCMS.getOrders(),
         updatedAt: new Date().toISOString()
+      };
+
+      const payload = {
+        ...rawPayload,
+        products: sanitizeProductList(rawPayload.products),
+        secondHandProducts: sanitizeProductList(rawPayload.secondHandProducts)
       };
       
       localStorage.setItem(STORAGE_KEYS.CLOUD_SYNC_TIMESTAMP, payload.updatedAt);
