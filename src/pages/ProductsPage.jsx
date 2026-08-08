@@ -41,9 +41,12 @@ export default function ProductsPage() {
       return false;
     }
     if (selectedCategory !== 'all') {
-      const catObj = categories.find(c => c.slug === selectedCategory);
-      if (catObj && p.category && p.category !== catObj.name) {
-        // fallback match
+      const catObj = categories.find(c => c.slug === selectedCategory || c.name.toLowerCase() === selectedCategory.toLowerCase());
+      const prodCat = (p.category || '').toLowerCase();
+      const targetCatName = (catObj?.name || selectedCategory).toLowerCase();
+      const targetCatSlug = (catObj?.slug || selectedCategory).toLowerCase();
+      if (prodCat !== targetCatName && prodCat !== targetCatSlug && !prodCat.includes(targetCatSlug)) {
+        return false;
       }
     }
     if (selectedBrand !== 'all' && brand !== selectedBrand.toLowerCase()) {

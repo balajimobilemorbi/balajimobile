@@ -350,8 +350,13 @@ export const storeCMS = {
       const urls = getActiveCloudRelayUrls();
       for (const url of urls) {
         try {
-          const res = await fetch(url, {
-            headers: { 'Accept': 'application/json' }
+          const cacheBustUrl = url.includes('?') ? `${url}&_t=${Date.now()}` : `${url}?_t=${Date.now()}`;
+          const res = await fetch(cacheBustUrl, {
+            headers: { 
+              'Accept': 'application/json',
+              'Cache-Control': 'no-cache, no-store, must-revalidate',
+              'Pragma': 'no-cache'
+            }
           }).catch(() => null);
 
           if (res && res.ok) {
