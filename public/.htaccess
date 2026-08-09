@@ -1,15 +1,15 @@
-# Hostinger Apache SPA Rewrite Rules & Cache Control for Balaji Mobile
+# Hostinger Apache SPA Configuration
 <IfModule mod_rewrite.c>
   RewriteEngine On
   RewriteBase /
+
   RewriteRule ^index\.html$ - [L]
   RewriteCond %{REQUEST_FILENAME} !-f
   RewriteCond %{REQUEST_FILENAME} !-d
-  RewriteCond %{REQUEST_FILENAME} !-l
-  RewriteRule . /index.html [L]
+  RewriteRule . index.html [L]
 </IfModule>
 
-# Disable caching for index.html so browsers & CDN always load fresh JS bundle hashes
+# Disable caching for index.html
 <FilesMatch "index\.html$">
   FileETag None
   <IfModule mod_headers.c>

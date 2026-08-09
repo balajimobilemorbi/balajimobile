@@ -1,30 +1,11 @@
-# Hostinger Root Apache Configuration — Route All Traffic to Compiled dist/ Folder
+# Hostinger Apache Root Configuration
 <IfModule mod_rewrite.c>
   RewriteEngine On
   RewriteBase /
 
-  # 1. If request is for root index.html or root path, serve /dist/index.html
-  RewriteRule ^$ dist/index.html [L]
-  RewriteRule ^index\.html$ dist/index.html [L]
+  # Do not rewrite if already accessing dist
+  RewriteRule ^dist/ - [L]
 
-  # 2. If the file exists in /dist/ (e.g. assets, logo, manifest), serve from /dist/
-  RewriteCond %{DOCUMENT_ROOT}/dist/$1 -f [OR]
-  RewriteCond %{DOCUMENT_ROOT}/dist/$1 -d
+  # Pass all other requests into dist folder
   RewriteRule ^(.*)$ dist/$1 [L]
-
-  # 3. For any SPA sub-routes (e.g. /admin, /products, /cart), rewrite to /dist/index.html
-  RewriteCond %{REQUEST_FILENAME} !-f
-  RewriteCond %{REQUEST_FILENAME} !-d
-  RewriteRule ^(.*)$ dist/index.html [L]
 </IfModule>
-
-# Disable caching for index.html
-<FilesMatch "index\.html$">
-  FileETag None
-  <IfModule mod_headers.c>
-    Header unset ETag
-    Header set Cache-Control "max-age=0, no-cache, no-store, must-revalidate"
-    Header set Pragma "no-cache"
-    Header set Expires "Wed, 11 Jan 1984 05:00:00 GMT"
-  </IfModule>
-</FilesMatch>
