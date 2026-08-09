@@ -673,6 +673,34 @@ export default function AdminDashboard() {
     return true;
   });
 
+  const handleExportBackup = () => {
+    const jsonStr = storeCMS.exportStoreData();
+    const blob = new Blob([jsonStr], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `balaji_mobile_backup_${new Date().toISOString().split('T')[0]}.json`;
+    a.click();
+    URL.revokeObjectURL(url);
+  };
+
+  const handleImportBackup = (e) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = (event) => {
+      const content = event.target.result;
+      const success = storeCMS.importStoreData(content);
+      if (success) {
+        alert("✅ Store data restored and synced live across all devices!");
+        syncState();
+      } else {
+        alert("❌ Failed to parse backup file. Please select a valid JSON backup file.");
+      }
+    };
+    reader.readAsText(file);
+  };
+
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10 space-y-8 bg-[#050505] min-h-screen text-[#F8F8F8]">
       
@@ -688,11 +716,11 @@ export default function AdminDashboard() {
             Balaji Mobile — Store Owner Control Center
           </h1>
           <p className="text-xs text-[#B8BDC8] font-mono mt-1">
-            Manage product inventory, verified UPI payments, order shipping dispatches, banners &amp; WhatsApp customer alerts.
+            Manage product inventory, verified UPI payments, order dispatches, hero banners &amp; WhatsApp alerts.
           </p>
         </div>
 
-        <div className="flex items-center gap-3 font-mono">
+        <div className="flex flex-wrap items-center gap-2 sm:gap-3 font-mono">
           <button
             disabled={isPushing}
             onClick={async () => {
@@ -700,7 +728,7 @@ export default function AdminDashboard() {
               const ok = await storeCMS.syncToCloud();
               setIsPushing(false);
               if (ok) {
-                alert("⚡ SUCCESS! All products, prices, hero banners, categories, coupons & settings have been PUSHED LIVE to Cloud Relays! All customer mobile phones will update automatically in real-time.");
+                alert("⚡ SUCCESS! All products, prices, banners & settings PUSHED LIVE to Cloud Relays! All customer devices will update automatically.");
               } else {
                 alert("⚠️ Cloud Push completed with local fallback. Please verify internet connection.");
               }
@@ -713,15 +741,30 @@ export default function AdminDashboard() {
             ) : (
               <Zap className="w-4 h-4 text-white fill-current" />
             )}
-            <span>{isPushing ? 'Pushing Live...' : 'Push Live to All Mobile Phones'}</span>
+            <span>{isPushing ? 'Pushing Live...' : 'Push Live'}</span>
           </button>
+
+          <button
+            onClick={handleExportBackup}
+            className="p-3 rounded-2xl bg-white/[0.04] border border-white/[0.08] text-[#D4AF37] font-bold text-xs hover:border-[#D4AF37] transition flex items-center gap-1.5"
+            title="Download JSON Backup of Store Data"
+          >
+            <Download className="w-4 h-4 text-[#D4AF37]" />
+            <span className="hidden sm:inline">Export</span>
+          </button>
+
+          <label className="p-3 rounded-2xl bg-white/[0.04] border border-white/[0.08] text-[#0FAE72] font-bold text-xs hover:border-[#0FAE72] transition flex items-center gap-1.5 cursor-pointer">
+            <Upload className="w-4 h-4 text-[#0FAE72]" />
+            <span className="hidden sm:inline">Import</span>
+            <input type="file" accept=".json" onChange={handleImportBackup} className="hidden" />
+          </label>
 
           <button
             onClick={() => setIsAuthenticated(false)}
             className="p-3 rounded-2xl bg-white/[0.04] border border-white/[0.08] text-rose-400 font-bold hover:bg-rose-500 hover:text-white transition text-xs"
             title="Lock Security Panel"
           >
-            Lock Panel
+            Lock
           </button>
 
           <div className="relative">

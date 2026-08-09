@@ -90,12 +90,13 @@ export default function App() {
     storeCMS.pullFromCloud();
     const interval = setInterval(() => {
       storeCMS.pullFromCloud();
-    }, 15000);
+    }, 5000);
 
     const handleFocus = () => {
       storeCMS.pullFromCloud();
     };
     window.addEventListener('focus', handleFocus);
+    window.addEventListener('visibilitychange', handleFocus);
 
     const handleRequireAuth = (e) => {
       setPendingAuthData(e.detail);
@@ -115,6 +116,7 @@ export default function App() {
     return () => {
       clearInterval(interval);
       window.removeEventListener('focus', handleFocus);
+      window.removeEventListener('visibilitychange', handleFocus);
       window.removeEventListener('bm_require_auth', handleRequireAuth);
       window.removeEventListener('bm_cms_update', handleCmsUpdate);
     };

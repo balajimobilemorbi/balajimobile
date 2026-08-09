@@ -94,7 +94,7 @@ const getUserVaultKey = (user) => {
 };
 
 // REALTIME CLOUD STORAGE ENGINE FOR LIVE CROSS-DEVICE SYNC (GitHub Pages / Vercel / Hostinger / Custom Domain)
-const SHARED_GLOBAL_CLOUD_URL = 'https://jsonblob.com/api/jsonBlob/019fe0b7-11d8-73da-8865-29ce6ffc9328';
+const SHARED_GLOBAL_CLOUD_URL = 'https://jsonblob.com/api/jsonBlob/019fe758-ecda-7c31-b20d-4ce85c781618';
 const DYNAMIC_RELAY_KEY = 'bm_cloud_relay_active_url';
 
 const getActiveCloudRelayUrls = () => {
@@ -230,31 +230,53 @@ export const storeCMS = {
       const sanitizeProductList = (list) => {
         if (!Array.isArray(list)) return [];
         return list.map(p => {
-          if (!p) return p;
-          let images = p.images;
-          if (Array.isArray(images)) {
-            images = images.map(img => {
-              if (typeof img === 'string' && img.length > 50000) {
+          if (!p || typeof p !== 'object') return null;
+          let safeImages = p.images;
+          if (Array.isArray(safeImages)) {
+            safeImages = safeImages.map(img => {
+              if (typeof img === 'string' && img.length > 2000) {
                 return 'https://images.unsplash.com/photo-1592750475338-74b7b21085ab?q=80&w=1000&auto=format&fit=crop';
               }
               return img;
             });
           }
-          return { ...p, images };
-        });
+          return {
+            id: p.id,
+            title: p.title,
+            brand: p.brand,
+            ram: p.ram,
+            storage: p.storage,
+            color: p.color,
+            bmPrice: Number(p.bmPrice) || 0,
+            marketPrice: Number(p.marketPrice) || Number(p.bmPrice) || 0,
+            stock: typeof p.stock === 'number' ? p.stock : 10,
+            category: p.category || 'Flagship Titans',
+            condition: p.condition || '',
+            warranty: p.warranty || '',
+            rating: p.rating || 5.0,
+            reviewsCount: p.reviewsCount || 0,
+            isFeatured: !!p.isFeatured,
+            isTrending: !!p.isTrending,
+            isNewArrival: !!p.isNewArrival,
+            isFlashSale: !!p.isFlashSale,
+            isSecondHand: !!p.isSecondHand,
+            images: Array.isArray(safeImages) ? safeImages.slice(0, 3) : [],
+            variants: Array.isArray(p.variants) ? p.variants.slice(0, 5) : []
+          };
+        }).filter(Boolean);
       };
 
       const rawPayload = {
         products: storeCMS.getProducts(),
         secondHandProducts: storeCMS.getSecondHandProducts(),
         categories: storeCMS.getCategories(),
-        brands: storeCMS.getBrands(),
+        brands: (storeCMS.getBrands() || []).slice(0, 15),
         banners: storeCMS.getBanners(),
         coupons: storeCMS.getCoupons(),
-        blogs: storeCMS.getBlogs(),
+        blogs: (storeCMS.getBlogs() || []).slice(0, 5),
         locations: storeCMS.getLocations(),
         settings: storeCMS.getSettings(),
-        orders: storeCMS.getOrders(),
+        orders: (storeCMS.getOrders() || []).slice(0, 20),
         updatedAt: new Date().toISOString()
       };
 
@@ -329,6 +351,37 @@ export const storeCMS = {
       return false;
     } finally {
       isSyncingWithCloud = false;
+    }
+  },
+
+  // Export full store backup JSON string
+  exportStoreData: () => {
+    return JSON.stringify({
+      products: storeCMS.getProducts(),
+      secondHandProducts: storeCMS.getSecondHandProducts(),
+      categories: storeCMS.getCategories(),
+      brands: storeCMS.getBrands(),
+      banners: storeCMS.getBanners(),
+      coupons: storeCMS.getCoupons(),
+      blogs: storeCMS.getBlogs(),
+      locations: storeCMS.getLocations(),
+      settings: storeCMS.getSettings(),
+      orders: storeCMS.getOrders(),
+      exportedAt: new Date().toISOString()
+    }, null, 2);
+  },
+
+  // Import store snapshot JSON string
+  importStoreData: (jsonString) => {
+    try {
+      const data = JSON.parse(jsonString);
+      if (!data || typeof data !== 'object') return false;
+      storeCMS.applyCloudPayload(data);
+      storeCMS.syncToCloud();
+      return true;
+    } catch (e) {
+      console.error('Import store data error:', e);
+      return false;
     }
   },
 
