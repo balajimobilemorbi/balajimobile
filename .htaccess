@@ -1,11 +1,21 @@
-# Hostinger Apache Root Configuration
+# Hostinger Apache SPA Configuration
 <IfModule mod_rewrite.c>
   RewriteEngine On
   RewriteBase /
 
-  # Do not rewrite if already accessing dist
-  RewriteRule ^dist/ - [L]
-
-  # Pass all other requests into dist folder
-  RewriteRule ^(.*)$ dist/$1 [L]
+  RewriteRule ^index\.html$ - [L]
+  RewriteCond %{REQUEST_FILENAME} !-f
+  RewriteCond %{REQUEST_FILENAME} !-d
+  RewriteRule . index.html [L]
 </IfModule>
+
+# Disable caching for index.html
+<FilesMatch "index\.html$">
+  FileETag None
+  <IfModule mod_headers.c>
+    Header unset ETag
+    Header set Cache-Control "max-age=0, no-cache, no-store, must-revalidate"
+    Header set Pragma "no-cache"
+    Header set Expires "Wed, 11 Jan 1984 05:00:00 GMT"
+  </IfModule>
+</FilesMatch>

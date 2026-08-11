@@ -1,0 +1,6 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200" fill="none">
+  <circle cx="100" cy="100" r="90" stroke="#ffffff" stroke-width="6" stroke-dasharray="310 255" stroke-dashoffset="-30"/>
+  <circle cx="100" cy="100" r="90" stroke="#E8701A" stroke-width="6" stroke-dasharray="200 365" stroke-dashoffset="-225"/>
+  <text x="70" y="125" font-family="Arial Black, Impact, sans-serif" font-weight="900" font-size="72" fill="#ffffff" letter-spacing="-2">B</text>
+  <text x="110" y="125" font-family="Arial Black, Impact, sans-serif" font-weight="900" font-size="72" fill="#E8701A" letter-spacing="-2">M</text>
+</svg>
