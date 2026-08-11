@@ -1,0 +1,16 @@
+{
+  "short_name": "BM Mobile",
+  "name": "BM Mobile - Premium Smartphone Store",
+  "icons": [
+    {
+      "src": "/favicon.svg",
+      "type": "image/svg+xml",
+      "sizes": "512x512"
+    }
+  ],
+  "start_url": "/",
+  "background_color": "#060807",
+  "theme_color": "#00e676",
+  "display": "standalone",
+  "orientation": "portrait"
+}
