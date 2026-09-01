@@ -199,8 +199,9 @@ export default function ProductDetailPage() {
                 />
                 
                 {product.discount > 0 && (
-                  <span className="absolute top-6 left-6 px-3 py-1.5 rounded-full text-xs font-bold font-mono bg-[#0FAE72]/20 text-[#10C480] border border-[#0FAE72]/40 backdrop-blur-md">
-                    {product.discount}% INSTANT DEDUCTION
+                  <span className="absolute top-6 left-6 px-3.5 py-1.5 rounded-full text-xs font-black font-mono bg-[#0FAE72] text-white border border-[#0FAE72] shadow-md flex items-center gap-1.5 z-20">
+                    <Zap className="w-3.5 h-3.5 fill-white text-white" />
+                    <span>{product.discount}% INSTANT DEDUCTION</span>
                   </span>
                 )}
               </div>
@@ -277,7 +278,7 @@ export default function ProductDetailPage() {
                 </span>
               )}
               {displayMarketPrice > displayBmPrice && (
-                <span className="px-2.5 py-1 rounded-full text-xs font-mono font-bold bg-[#0FAE72]/20 text-[#10C480] border border-[#0FAE72]/40">
+                <span className="px-3 py-1 rounded-full text-xs font-mono font-black bg-[#0FAE72] text-white border border-[#0FAE72] shadow-sm">
                   Save ₹{(displayMarketPrice - displayBmPrice).toLocaleString('en-IN')}
                 </span>
               )}
@@ -627,24 +628,49 @@ export default function ProductDetailPage() {
         </form>
       </div>
 
-      {/* Sticky Mobile Bottom Purchase Bar */}
-      <div className="lg:hidden fixed bottom-[56px] left-0 right-0 z-30 bg-[#050505]/95 border-t border-white/[0.1] px-4 py-3 backdrop-blur-[25px] flex items-center justify-between shadow-[0_-10px_30px_rgba(0,0,0,0.9)]">
-        <div className="min-w-0 flex-1 pr-3">
-          <p className="text-[#F8F8F8] font-bold text-xs truncate">{product.title}</p>
-          <p className="text-[#0FAE72] font-mono font-bold text-sm">₹{product.bmPrice?.toLocaleString('en-IN')}</p>
+      {/* Enhanced Mobile Sticky Action Bar */}
+      <div className="lg:hidden fixed bottom-[52px] left-0 right-0 z-30 bg-[#050505]/95 border-t border-white/[0.12] px-3.5 py-2.5 backdrop-blur-[30px] flex items-center justify-between gap-2 shadow-[0_-12px_40px_rgba(0,0,0,0.95)]">
+        <div className="min-w-0 flex-1 pr-1">
+          <p className="text-[#F8F8F8] font-bold text-xs truncate leading-tight">{product.title}</p>
+          <div className="flex items-baseline gap-1.5 mt-0.5">
+            <span className="text-[#0FAE72] font-mono font-black text-sm">₹{displayBmPrice.toLocaleString('en-IN')}</span>
+            {displayMarketPrice > displayBmPrice && (
+              <span className="text-[10px] text-[#B8BDC8] line-through font-mono">₹{displayMarketPrice.toLocaleString('en-IN')}</span>
+            )}
+          </div>
         </div>
-        <div className="flex items-center gap-2 shrink-0">
+        
+        <div className="flex items-center gap-1.5 shrink-0">
+          <a
+            href={`https://wa.me/917990648756?text=${encodeURIComponent(`Hello Balaji Mobile! I want to inquire about ${product.title} (₹${displayBmPrice.toLocaleString('en-IN')}).`)}`}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="p-2.5 rounded-xl bg-emerald-500/20 text-emerald-400 border border-emerald-500/40 active:scale-95 transition flex items-center justify-center"
+            title="Inquire on WhatsApp"
+          >
+            <MessageSquare className="w-4 h-4" />
+          </a>
+
           <button
             onClick={handleAddToCart}
-            disabled={product.stock <= 0}
-            className={`px-4 py-2.5 rounded-xl font-bold text-xs transition-all flex items-center gap-1.5 ${
+            disabled={displayStock <= 0}
+            className={`px-3 py-2.5 rounded-xl font-bold text-xs transition-all flex items-center gap-1 active:scale-95 ${
               added 
                 ? 'bg-[#0FAE72] text-[#050505]'
-                : 'bg-gradient-to-r from-[#0FAE72] to-[#0B8F5C] text-white shadow-lg'
+                : 'bg-white/[0.08] text-[#F8F8F8] border border-white/[0.15]'
             }`}
           >
-            <ShoppingBag className="w-4 h-4" />
-            <span>{added ? 'Added!' : 'Add to Bag'}</span>
+            <ShoppingBag className="w-3.5 h-3.5" />
+            <span>{added ? 'Added' : 'Bag'}</span>
+          </button>
+
+          <button
+            onClick={handleBuyNow}
+            disabled={displayStock <= 0}
+            className="px-3.5 py-2.5 rounded-xl font-black text-xs bg-gradient-to-r from-[#0FAE72] to-[#0B8F5C] text-white shadow-[0_4px_15px_rgba(15,174,114,0.4)] flex items-center gap-1 active:scale-95"
+          >
+            <Zap className="w-3.5 h-3.5 fill-current" />
+            <span>Buy</span>
           </button>
         </div>
       </div>

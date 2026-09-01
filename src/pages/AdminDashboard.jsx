@@ -106,9 +106,10 @@ export default function AdminDashboard() {
   const unreadNotifs = (notifications || []).filter(n => !n.isRead);
 
   const pendingOrders = (orders || []).filter(o => {
-    const isCancelled = (o.paymentStatus || '').includes('Cancelled') || o.orderStatus === 'Cancelled';
+    const isVerified = Boolean(o.paymentVerifiedAt) || (o.paymentStatus || '').includes('Verified by Owner') || (o.paymentStatus || '').includes('✅');
+    const isCancelled = Boolean(o.cancelledAt) || (o.paymentStatus || '').includes('Cancelled') || (o.paymentStatus || '').includes('Rejected') || (o.paymentStatus || '').includes('❌') || o.orderStatus === 'Cancelled';
     const isDispatched = o.orderStatus === 'Handed to Courier' || o.orderStatus === 'Out for Delivery' || o.orderStatus === 'Delivered';
-    return !isCancelled && !isDispatched;
+    return !isVerified && !isCancelled && !isDispatched;
   });
 
   const totalRevenue = (orders || []).reduce((acc, o) => acc + (o.totalAmount || 0), 0);
@@ -134,15 +135,15 @@ export default function AdminDashboard() {
           </div>
           <div>
             <span className="text-xs uppercase tracking-widest text-[#D4AF37] font-bold">BALAJI MOBILE CMS</span>
-            <h2 className="font-display font-black text-2xl text-[#F8F8F8] mt-1">Store Owner Access</h2>
-            <p className="text-xs text-[#B8BDC8] font-mono mt-1">Enter your confidential Security PIN to manage inventory &amp; orders.</p>
+            <h2 className="font-display font-black text-2xl text-[#F8F8F8] mt-1">Welcome Owner Princebhai!</h2>
+            <p className="text-xs text-[#B8BDC8] font-mono mt-1">Owner Princebhai, please enter the security password to log into Admin Control Panel.</p>
           </div>
           <form onSubmit={handlePinSubmit} className="space-y-4">
             <div className="relative">
               <input
                 type={showPin ? "text" : "password"}
-                maxLength={8}
-                placeholder="Enter Security PIN (e.g. 1234)"
+                maxLength={16}
+                placeholder="Enter Master Password"
                 value={pinInput}
                 onChange={(e) => setPinInput(e.target.value)}
                 className="w-full px-4 py-3.5 rounded-2xl bg-white/[0.04] border border-[#D4AF37]/40 text-[#F8F8F8] text-center font-mono text-lg tracking-widest outline-none focus:border-[#D4AF37]"
@@ -155,7 +156,7 @@ export default function AdminDashboard() {
                 {showPin ? 'Hide' : 'Show'}
               </button>
             </div>
-            {pinError && <p className="text-xs font-mono text-rose-400 font-bold">⚠️ Access Denied: Incorrect Security PIN.</p>}
+            {pinError && <p className="text-xs font-mono text-rose-400 font-bold">⚠️ Access Denied: Incorrect Master Password.</p>}
             <button type="submit" className="w-full py-3.5 rounded-2xl bg-gradient-to-r from-[#0FAE72] to-[#0B8F5C] hover:from-[#D4AF37] hover:to-[#E7C76A] hover:text-[#050505] text-white font-bold text-sm shadow-lg transition font-mono">
               Unlock Management Panel
             </button>
@@ -460,6 +461,7 @@ export default function AdminDashboard() {
         return o;
       });
       storeCMS.saveOrders(updated);
+      storeCMS.dismissOwnerNotification(orderId);
       syncState();
 
       const notif = storeCMS.getCustomerVerificationNotification(
@@ -487,6 +489,7 @@ export default function AdminDashboard() {
         return o;
       });
       storeCMS.saveOrders(updated);
+      storeCMS.dismissOwnerNotification(orderId);
       syncState();
 
       const notif = storeCMS.getCustomerRejectionNotification(verifyModalOrder, reasonText);
@@ -788,16 +791,35 @@ export default function AdminDashboard() {
                     <Bell className="w-4 h-4 text-[#0FAE72]" />
                     <span>Real-Time Customer Orders</span>
                   </h4>
-                  <button onClick={() => setShowNotifDrawer(false)} className="text-[#B8BDC8] hover:text-[#F8F8F8]">
-                    <X className="w-4 h-4" />
-                  </button>
+                  <div className="flex items-center gap-2.5">
+                    {notifications.length > 0 && (
+                      <button
+                        onClick={() => { storeCMS.clearAllOwnerNotifications(); syncState(); }}
+                        className="text-[10px] text-rose-400 hover:underline font-mono"
+                      >
+                        Clear All
+                      </button>
+                    )}
+                    <button onClick={() => setShowNotifDrawer(false)} className="text-[#B8BDC8] hover:text-[#F8F8F8]">
+                      <X className="w-4 h-4" />
+                    </button>
+                  </div>
                 </div>
 
                 <div className="max-h-80 overflow-y-auto space-y-2 font-mono">
                   {notifications.length > 0 ? (
                     notifications.map(n => (
-                      <div key={n.id} className={`p-3.5 rounded-2xl border space-y-1 transition ${n.isRead ? 'bg-white/[0.02] border-white/[0.08]' : 'bg-[#D4AF37]/10 border-[#D4AF37]/40 font-bold'}`}>
-                        <p className="text-[#D4AF37] text-xs font-bold">{n.title}</p>
+                      <div key={n.id} className={`p-3.5 rounded-2xl border space-y-1 transition relative ${n.isRead ? 'bg-white/[0.02] border-white/[0.08]' : 'bg-[#D4AF37]/10 border-[#D4AF37]/40 font-bold'}`}>
+                        <div className="flex justify-between items-start gap-2">
+                          <p className="text-[#D4AF37] text-xs font-bold">{n.title}</p>
+                          <button
+                            onClick={() => { storeCMS.dismissOwnerNotification(n.id); syncState(); }}
+                            className="text-[#B8BDC8] hover:text-rose-400 p-0.5 shrink-0"
+                            title="Dismiss Notification"
+                          >
+                            <X className="w-3.5 h-3.5" />
+                          </button>
+                        </div>
                         <p className="text-[11px] text-[#B8BDC8]">₹{(n.totalAmount || 0).toLocaleString('en-IN')} • {n.paymentMethod}</p>
                         <p className="text-[10px] text-[#B8BDC8]/70">{n.fullAddress}</p>
                         {!n.isRead && (
@@ -1004,11 +1026,21 @@ export default function AdminDashboard() {
                           <p className="text-[#F8F8F8]">Customer: <strong className="text-[#D4AF37]">{o.customerName}</strong></p>
                           <p className="text-[#B8BDC8]">Phone: <strong>+91 {o.phone}</strong></p>
                           <p className="text-[#B8BDC8]">Address: {o.address}, {o.city}, {o.state} - {o.pincode}</p>
+                          <p className="text-[#B8BDC8]">UPI UTR / Ref: <strong className="text-[#E7C76A] font-mono">{o.paymentId || 'Pending'}</strong></p>
                         </div>
-                        <div className="p-4 rounded-2xl bg-[#D4AF37]/10 border border-[#D4AF37]/40 space-y-1">
+                        <div className="p-4 rounded-2xl bg-[#D4AF37]/10 border border-[#D4AF37]/40 space-y-1.5">
                           <p className="text-[11px] text-[#D4AF37] font-bold uppercase">Amount to Check in GPay / Bank App:</p>
                           <p className="text-2xl font-black text-[#0FAE72] font-display">₹{(o.totalAmount || 0).toLocaleString('en-IN')}</p>
-                          <p className="text-[#B8BDC8]">Method: <strong>{o.paymentMethod}</strong> {o.paymentId ? `(UTR: ${o.paymentId})` : ''}</p>
+                          <p className="text-[#B8BDC8]">Method: <strong>{o.paymentMethod}</strong></p>
+                          {o.paymentScreenshot && (
+                            <div className="pt-2">
+                              <span className="text-[10px] text-[#0FAE72] font-bold block mb-1">📸 Customer Payment Screenshot:</span>
+                              <a href={o.paymentScreenshot} target="_blank" rel="noopener noreferrer" className="inline-block relative rounded-xl overflow-hidden border border-[#0FAE72]/50 group">
+                                <img src={o.paymentScreenshot} alt="Payment Proof" className="h-20 w-36 object-cover group-hover:scale-105 transition" />
+                                <span className="absolute inset-0 bg-[#050505]/40 opacity-0 group-hover:opacity-100 transition flex items-center justify-center text-[10px] text-white font-bold">View Full</span>
+                              </a>
+                            </div>
+                          )}
                         </div>
                       </div>
 
@@ -1073,7 +1105,15 @@ export default function AdminDashboard() {
 
                       <div className="space-y-1 text-[#B8BDC8]">
                         <p>Address: {o.address}, {o.city}, {o.district}, {o.state} - {o.pincode}</p>
-                        <p>Total Paid: <strong className="text-[#0FAE72]">₹{(o.totalAmount || 0).toLocaleString('en-IN')}</strong> ({o.paymentMethod})</p>
+                        <p>Total Paid: <strong className="text-[#0FAE72]">₹{(o.totalAmount || 0).toLocaleString('en-IN')}</strong> ({o.paymentMethod}) {o.paymentId ? `— UTR: ${o.paymentId}` : ''}</p>
+                        {o.paymentScreenshot && (
+                          <div className="pt-2">
+                            <span className="text-[10px] text-[#0FAE72] font-bold block mb-1">📸 Attached Screenshot:</span>
+                            <a href={o.paymentScreenshot} target="_blank" rel="noopener noreferrer" className="inline-block relative rounded-xl overflow-hidden border border-white/[0.1]">
+                              <img src={o.paymentScreenshot} alt="Payment Proof" className="h-16 w-28 object-cover" />
+                            </a>
+                          </div>
+                        )}
                       </div>
                     </div>
                   ))}

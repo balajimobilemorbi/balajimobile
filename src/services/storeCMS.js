@@ -32,6 +32,7 @@ const STORAGE_KEYS = {
   REVIEWS: 'bm_reviews_v5',
   REWARD_POINTS: 'bm_rewards_v5',
   USER_SESSION: 'bm_user_session_v5',
+  REGISTERED_USERS: 'bm_registered_users_v5',
   CLOUD_SYNC_TIMESTAMP: 'bm_cloud_ts_v5'
 };
 
@@ -190,6 +191,9 @@ export const storeCMS = {
       if (Array.isArray(payload.orders)) {
         localStorage.setItem(STORAGE_KEYS.ORDERS, JSON.stringify(payload.orders));
       }
+      if (Array.isArray(payload.registeredUsers)) {
+        localStorage.setItem(STORAGE_KEYS.REGISTERED_USERS, JSON.stringify(payload.registeredUsers));
+      }
       if (payload.updatedAt) {
         localStorage.setItem(STORAGE_KEYS.CLOUD_SYNC_TIMESTAMP, payload.updatedAt);
       }
@@ -276,7 +280,8 @@ export const storeCMS = {
         blogs: (storeCMS.getBlogs() || []).slice(0, 5),
         locations: storeCMS.getLocations(),
         settings: storeCMS.getSettings(),
-        orders: (storeCMS.getOrders() || []).slice(0, 20),
+        orders: (storeCMS.getAllOrders ? storeCMS.getAllOrders() : storeCMS.getOrders() || []).slice(0, 50),
+        registeredUsers: storeCMS.getRegisteredUsers ? storeCMS.getRegisteredUsers() : [],
         updatedAt: new Date().toISOString()
       };
 
@@ -759,25 +764,118 @@ export const storeCMS = {
     }
   },
 
-  getOrders: () => getLocal(STORAGE_KEYS.ORDERS, []),
+  // ========== REGISTERED USERS & ACCOUNTS ==========
+  getRegisteredUsers: () => getLocal(STORAGE_KEYS.REGISTERED_USERS, []),
+  
+  findRegisteredUser: (identifier) => {
+    if (!identifier) return null;
+    const cleanId = String(identifier).trim().toLowerCase();
+    const cleanPhone = cleanId.replace(/[^0-9]/g, '');
+    const users = storeCMS.getRegisteredUsers();
+
+    return users.find(u => {
+      const uEmail = (u.email || '').trim().toLowerCase();
+      const uPhone = (u.phone || '').replace(/[^0-9]/g, '');
+      if (cleanId.includes('@') && uEmail === cleanId) return true;
+      if (cleanPhone.length >= 10 && (uPhone === cleanPhone || (uPhone.length >= 10 && (uPhone.endsWith(cleanPhone) || cleanPhone.endsWith(uPhone))))) return true;
+      if (uEmail === cleanId) return true;
+      return false;
+    }) || null;
+  },
+
+  registerUser: (userProfile) => {
+    if (!userProfile || (!userProfile.email && !userProfile.phone)) return null;
+    const users = storeCMS.getRegisteredUsers();
+    const cleanEmail = (userProfile.email || '').trim().toLowerCase();
+    const cleanPhone = (userProfile.phone || '').replace(/[^0-9]/g, '');
+    
+    const existing = users.find(u => {
+      const uEmail = (u.email || '').trim().toLowerCase();
+      const uPhone = (u.phone || '').replace(/[^0-9]/g, '');
+      if (cleanEmail && uEmail === cleanEmail) return true;
+      if (cleanPhone.length >= 10 && uPhone === cleanPhone) return true;
+      return false;
+    });
+
+    if (existing) {
+      const updatedUser = { ...existing, ...userProfile, updatedAt: new Date().toISOString() };
+      const updated = users.map(u => u.id === existing.id ? updatedUser : u);
+      setLocal(STORAGE_KEYS.REGISTERED_USERS, updated);
+      storeCMS.syncToCloud();
+      return updatedUser;
+    }
+
+    const newUser = {
+      ...userProfile,
+      id: userProfile.id || `user-${Date.now()}`,
+      registeredAt: new Date().toISOString()
+    };
+    const updated = [newUser, ...users];
+    setLocal(STORAGE_KEYS.REGISTERED_USERS, updated);
+    storeCMS.syncToCloud();
+    return newUser;
+  },
+
+  // ========== ORDERS & UTR REGISTRY ==========
+  getAllOrders: () => getLocal(STORAGE_KEYS.ORDERS, []),
+
+  getUserOrders: (user) => {
+    const activeUser = user || storeCMS.getUser();
+    if (!activeUser) return [];
+
+    const userEmail = (activeUser.email || '').trim().toLowerCase();
+    const userPhone = (activeUser.phone || '').replace(/[^0-9]/g, '');
+    const userId = activeUser.id;
+    const allOrders = storeCMS.getAllOrders();
+
+    return allOrders.filter(order => {
+      const ordEmail = (order.email || '').trim().toLowerCase();
+      const ordPhone = (order.phone || '').replace(/[^0-9]/g, '');
+      const ordUserId = order.userId;
+
+      if (userId && ordUserId && ordUserId === userId) return true;
+      if (userEmail && ordEmail && ordEmail === userEmail) return true;
+      if (userPhone && ordPhone && userPhone.length >= 10 && (ordPhone === userPhone || ordPhone.endsWith(userPhone) || userPhone.endsWith(ordPhone))) return true;
+      return false;
+    });
+  },
+
+  getOrders: (user) => {
+    if (user) {
+      return storeCMS.getUserOrders(user);
+    }
+    return storeCMS.getAllOrders();
+  },
+
   saveOrders: (orders) => {
     setLocal(STORAGE_KEYS.ORDERS, orders);
     storeCMS.syncToCloud();
   },
 
   placeOrder: (orderData) => {
-    const orders = storeCMS.getOrders();
+    const orders = storeCMS.getAllOrders();
+    const currentUser = storeCMS.getUser();
+    const isOnline = orderData.paymentMethod !== 'Cash on Delivery';
+    const payStatus = orderData.paymentStatus || (isOnline ? `${orderData.paymentMethod || 'Online Payment'} — Pending Owner Bank Verification` : 'COD — Pending');
+
     const newOrder = {
       ...orderData,
       id: `BM-ORD-${Math.floor(10000 + Math.random() * 90000)}`,
+      userId: currentUser?.id || orderData.userId || null,
+      email: (orderData.email || currentUser?.email || '').trim(),
+      phone: (orderData.phone || currentUser?.phone || '').trim(),
+      customerName: (orderData.customerName || currentUser?.name || 'Valued Client').trim(),
       placedAt: new Date().toISOString(),
       orderStatus: 'Order Placed',
-      paymentStatus: orderData.paymentMethod === 'Cash on Delivery' ? 'Pending COD' : 'Paid',
+      paymentStatus: payStatus,
+      paymentId: orderData.paymentId || '',
+      paymentScreenshot: orderData.paymentScreenshot || null,
       trackingNumber: `SHIP-${Math.floor(10000000 + Math.random() * 90000000)}`,
       courierName: 'Shiprocket / BlueDart Express',
       estDelivery: 'Within 2-3 Business Days',
       timeline: [
         { status: 'Order Placed', time: new Date().toLocaleString(), done: true },
+        { status: 'Bank Payment Verification', time: isOnline ? 'Pending Owner Check' : 'COD Payment on Delivery', done: !isOnline },
         { status: 'Packed & Quality Verified', time: 'Pending', done: false },
         { status: 'Handed to Courier', time: 'Pending', done: false },
         { status: 'Out for Delivery', time: 'Pending', done: false },
@@ -803,17 +901,21 @@ export const storeCMS = {
     });
     setLocal(STORAGE_KEYS.PRODUCTS, updatedProducts);
 
-
     // Create Live Notification for Store Owner Login CMS
     const ownerNotif = {
       id: `NOTIF-${Date.now()}`,
       orderId: newOrder.id,
-      title: `🚨 NEW ORDER #${newOrder.id} (${newOrder.customerName})`,
+      title: isOnline
+        ? `⚠️ VERIFY PAYMENT: #${newOrder.id} (${newOrder.customerName} - ₹${newOrder.totalAmount.toLocaleString('en-IN')})`
+        : `🚨 NEW COD ORDER #${newOrder.id} (${newOrder.customerName})`,
       customerName: newOrder.customerName,
       customerPhone: newOrder.phone,
       customerEmail: newOrder.email,
       totalAmount: newOrder.totalAmount,
       paymentMethod: newOrder.paymentMethod,
+      paymentId: newOrder.paymentId,
+      paymentScreenshot: newOrder.paymentScreenshot,
+      paymentStatus: newOrder.paymentStatus,
       fullAddress: `${newOrder.address}, ${newOrder.city}, ${newOrder.district}, ${newOrder.state} - ${newOrder.pincode}`,
       placedAt: newOrder.placedAt,
       isRead: false
@@ -841,6 +943,19 @@ export const storeCMS = {
     const existing = storeCMS.getOwnerNotifications();
     const updated = existing.map(n => n.id === id ? { ...n, isRead: true } : n);
     setLocal('bm_owner_notifications_v4', updated);
+  },
+
+  dismissOwnerNotification: (orderIdOrNotifId) => {
+    const existing = storeCMS.getOwnerNotifications();
+    const cleanId = String(orderIdOrNotifId || '').trim();
+    const updated = existing.filter(n => n.id !== cleanId && n.orderId !== cleanId);
+    setLocal('bm_owner_notifications_v4', updated);
+    storeCMS.syncToCloud();
+  },
+
+  clearAllOwnerNotifications: () => {
+    setLocal('bm_owner_notifications_v4', []);
+    storeCMS.syncToCloud();
   },
 
   // Silent Background Dispatcher — sends order details automatically to owner without customer opening WhatsApp
@@ -1059,10 +1174,11 @@ Thank you for shopping at *Balaji Mobile — Morbi, Gujarat!*
 For support, call us: +91 79906 48756`;
 
     // Store Owner WhatsApp Notification Message
+    const isOnline = order.paymentMethod !== 'Cash on Delivery';
     const ownerMsg = 
-`🚨 *NEW ORDER RECEIVED — BALAJI MOBILE WEBSITE*
+`🚨 *${isOnline ? 'ONLINE PREPAYMENT VERIFICATION REQUIRED' : 'NEW COD ORDER RECEIVED'} — BALAJI MOBILE*
 ────────────────────────────────────────
-🆔 *Order ID:* ${order.id}
+🆔 *Order ID:* #${order.id}
 📅 *Date & Time:* ${new Date(order.placedAt || Date.now()).toLocaleString('en-IN')}
 
 👤 *CUSTOMER DETAILS:*
@@ -1075,13 +1191,15 @@ For support, call us: +91 79906 48756`;
 ${itemsSummary}
 
 💰 *TOTAL AMOUNT:* ₹${order.totalAmount.toLocaleString('en-IN')}
-💳 *PAYMENT METHOD:* ${order.paymentMethod} ${order.paymentId ? `(UTR: ${order.paymentId})` : ''}
-📊 *PAYMENT STATUS:* ${order.paymentStatus || order.orderStatus || 'Pending Verification'}
+💳 *PAYMENT METHOD:* ${order.paymentMethod}
+🔢 *UPI UTR / REF NO.:* ${order.paymentId || 'Customer submitting proof via WhatsApp'}
+📊 *PAYMENT STATUS:* ${order.paymentStatus || 'Pending Owner Verification'}
+📸 *SCREENSHOT PROOF:* ${order.paymentScreenshot ? '✅ Attached with Order (View in Admin)' : 'Pending Customer WhatsApp Share'}
 
-👉 *OWNER ACTION:*
-1. Check GPay / Bank App for payment of ₹${order.totalAmount.toLocaleString('en-IN')}
-2. If payment received → Pack & Dispatch via Shiprocket / BlueDart
-3. Confirm / Manage in Admin Panel: https://balajimobile.store/admin`;
+⚠️ *OWNER VERIFICATION INSTRUCTION:*
+1. Check GPay / Bank App on your phone (+91 79906 48756) for credit of ₹${order.totalAmount.toLocaleString('en-IN')}.
+2. Confirm receipt: IF AND ONLY IF payment is received in your bank account, dispatch the order; otherwise reject/cancel.
+3. Manage / Confirm in Admin Panel: https://balajimobile.store/admin`;
 
     const customerPhoneClean = (order.phone || '').replace(/[^0-9]/g, '');
     const fullCustomerPhone = customerPhoneClean.startsWith('91') ? customerPhoneClean : `91${customerPhoneClean}`;
@@ -1231,23 +1349,21 @@ Balaji Mobile — Morbi, Gujarat`;
       const savedVault = getLocal(vaultKey, null);
       if (savedVault) {
         // RESTORE USER'S SAVED HISTORY (CART, WISHLIST, REWARDS)
-        if (Array.isArray(savedVault.cart)) {
-          setLocal(STORAGE_KEYS.CART, savedVault.cart);
-        }
-        if (Array.isArray(savedVault.wishlist)) {
-          setLocal(STORAGE_KEYS.WISHLIST, savedVault.wishlist);
-        }
+        setLocal(STORAGE_KEYS.CART, Array.isArray(savedVault.cart) ? savedVault.cart : []);
+        setLocal(STORAGE_KEYS.WISHLIST, Array.isArray(savedVault.wishlist) ? savedVault.wishlist : []);
         if (savedVault.rewardPoints) {
           setLocal(STORAGE_KEYS.REWARD_POINTS, savedVault.rewardPoints);
         }
         console.log(`✅ [USER VAULT RESTORED] History restored for ${user.email || user.phone}`);
       } else {
-        // INITIALIZE VAULT WITH CURRENT ACTIVE STATE
+        // INITIALIZE FRESH VAULT FOR NEW USER
+        setLocal(STORAGE_KEYS.CART, []);
+        setLocal(STORAGE_KEYS.WISHLIST, []);
         setLocal(vaultKey, {
           user,
-          cart: storeCMS.getCart(),
-          wishlist: storeCMS.getWishlist(),
-          rewardPoints: storeCMS.getRewardPoints()
+          cart: [],
+          wishlist: [],
+          rewardPoints: 100
         });
       }
     }
@@ -1281,7 +1397,7 @@ Balaji Mobile — Morbi, Gujarat`;
     const currentUser = storeCMS.getUser();
     const vaultKey = getUserVaultKey(currentUser);
 
-    if (vaultKey) {
+    if (vaultKey && currentUser) {
       // BACKUP USER STATE BEFORE LOGGING OUT
       setLocal(vaultKey, {
         user: currentUser,
@@ -1293,9 +1409,11 @@ Balaji Mobile — Morbi, Gujarat`;
     }
 
     // RESET SESSION & CLEAR ACTIVE GUEST CART/WISHLIST
+    localStorage.removeItem(STORAGE_KEYS.USER_SESSION);
     setLocal(STORAGE_KEYS.USER_SESSION, null);
     setLocal(STORAGE_KEYS.CART, []);
     setLocal(STORAGE_KEYS.WISHLIST, []);
+    window.dispatchEvent(new Event('bm_cms_update'));
   },
 
   // ========== WISHLIST ==========

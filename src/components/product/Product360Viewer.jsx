@@ -1,7 +1,7 @@
 import React, { useState, useRef } from 'react';
 import { RotateCw, Play, Pause, Compass, Video } from 'lucide-react';
 
-export default function Product360Viewer({ frames, videoUrl, title }) {
+export default function Product360Viewer({ frames = [], videoUrl, title = 'Product' }) {
   const [currentFrame, setCurrentFrame] = useState(0);
   const [isDragging, setIsDragging] = useState(false);
   const [startX, setStartX] = useState(0);
@@ -19,7 +19,8 @@ export default function Product360Viewer({ frames, videoUrl, title }) {
 
   const youtubeEmbed = getYouTubeEmbedUrl(videoUrl);
 
-  const frameCount = frames && frames.length > 0 ? frames.length : 1;
+  const frameList = Array.isArray(frames) && frames.length > 0 ? frames : ['/bm-logo.png'];
+  const frameCount = frameList.length;
 
   const handleMouseDown = (e) => {
     setIsDragging(true);
@@ -106,7 +107,7 @@ export default function Product360Viewer({ frames, videoUrl, title }) {
           className="w-full h-80 flex items-center justify-center cursor-grab active:cursor-grabbing py-6 z-10"
         >
           <img 
-            src={frames[currentFrame] || frames[0]} 
+            src={frameList[currentFrame] || frameList[0]} 
             alt={`${title} 360 view frame ${currentFrame}`} 
             className="max-h-full max-w-full object-contain filter drop-shadow-[0_25px_40px_rgba(0,0,0,0.9)] transition-all transform group-hover:scale-105"
           />

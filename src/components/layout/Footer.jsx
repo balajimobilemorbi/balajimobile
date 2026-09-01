@@ -29,10 +29,10 @@ export default function Footer() {
         {/* Showroom Trust Pillars */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 pb-16 border-b border-white/[0.08]">
           {[
-            { icon: <ShieldCheck className="w-6 h-6 text-[#D4AF37]" />, title: '100% Sealed Genuine', sub: 'Official Brand Manufacturer Warranty' },
-            { icon: <Truck className="w-6 h-6 text-[#D4AF37]" />, title: 'Insured White-Glove Shipping', sub: 'Shiprocket & BlueDart Express Delivery' },
-            { icon: <RotateCcw className="w-6 h-6 text-[#D4AF37]" />, title: '7-Day Replacement Guarantee', sub: 'Hassle-Free Store Concierge Exchange' },
-            { icon: <Headphones className="w-6 h-6 text-[#D4AF37]" />, title: 'VIP Concierge Desk', sub: 'Personalized Smartphone Advisory' },
+            { icon: <ShieldCheck className="w-6 h-6 text-[#D4AF37]" />, title: '100% Genuine Products', sub: 'Official Brand Warranty Included' },
+            { icon: <Truck className="w-6 h-6 text-[#D4AF37]" />, title: 'Free Insured Shipping', sub: 'Express Delivery via BlueDart & Delhivery' },
+            { icon: <RotateCcw className="w-6 h-6 text-[#D4AF37]" />, title: '7-Day Replacement', sub: 'Easy Return & Exchange' },
+            { icon: <Headphones className="w-6 h-6 text-[#D4AF37]" />, title: 'Customer Support', sub: 'Help & Support Available' },
           ].map((item, i) => (
             <div key={i} className="flex items-center gap-4 p-5 rounded-[24px] bg-[#0D1117] border border-white/[0.08] shadow-[0_10px_30px_rgba(0,0,0,0.6)]">
               <div className="p-3.5 rounded-2xl bg-white/[0.04] border border-[#D4AF37]/30">
@@ -66,28 +66,28 @@ export default function Footer() {
                   BALAJI MOBILE
                 </span>
                 <span className="text-[10px] uppercase tracking-[0.25em] font-mono text-[#B8BDC8]">
-                  LUXURY SHOWROOM
+                  MORBI, GUJARAT
                 </span>
               </div>
             </Link>
 
             <p className="text-sm leading-relaxed pr-4 text-[#B8BDC8] font-sans">
-              {settings.tagline || "Morbi's premier luxury e-commerce showroom for flagship smartphones, 360° product view, official manufacturer warranty & instant trade-in exchange at Gujarat, India."}
+              {settings.tagline || "Your trusted mobile shop in Morbi, Gujarat. New & pre-owned smartphones with genuine warranty, 360° product view, and fast delivery across India."}
             </p>
 
             <div className="space-y-3 pt-2">
               <h4 className="text-xs font-mono uppercase tracking-[0.2em] font-bold text-[#D4AF37]">
-                VIP Concierge & Price Drop Alerts
+                Get Deals & Updates
               </h4>
               {subscribed ? (
                 <div className="flex items-center gap-2 text-[#F8F8F8] text-sm bg-white/[0.05] border border-[#0FAE72] p-4 rounded-2xl">
                   <CheckCircle2 className="w-5 h-5 text-[#0FAE72]" />
-                  <span>You are subscribed to Balaji Mobile VIP Concierge!</span>
+                  <span>You're subscribed! We'll send you the best deals.</span>
                 </div>
               ) : (
                 <form onSubmit={handleSubscribe} className="flex gap-2">
                   <input type="email" required
-                    placeholder="Enter your VIP email..."
+                    placeholder="Enter email for deals..."
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
                     className="w-full px-4 py-3 rounded-2xl text-sm focus:outline-none bg-[#0D1117] border border-white/[0.08] focus:border-[#D4AF37] text-[#F8F8F8] placeholder-[#B8BDC8]"
@@ -106,16 +106,16 @@ export default function Footer() {
           {/* Quick Links */}
           <div className="space-y-4">
             <h4 className="text-xs font-mono uppercase tracking-[0.2em] font-bold text-[#F8F8F8]">
-              Explore Showroom
+              Quick Links
             </h4>
             <ul className="space-y-3 text-sm">
               {[
-                { to: '/products', label: 'All Flagships' },
+                { to: '/products', label: 'All Phones' },
                 { to: '/second-hand', label: 'Certified Pre-Owned', icon: <Recycle className="w-3.5 h-3.5 text-[#0FAE72]" /> },
                 { to: '/products?category=flagship-titans', label: 'Flagship Titans' },
                 { to: '/products?category=foldables-flips', label: 'Foldables & Flips' },
-                { to: '/compare', label: 'Compare Devices' },
-                { to: '/stores', label: 'Morbi Lounge' },
+                { to: '/compare', label: 'Compare Phones' },
+                { to: '/stores', label: 'Store Location' },
                 { to: '/blogs', label: 'Tech Editorial' },
               ].map(item => (
                 <li key={item.to}>
@@ -134,14 +134,13 @@ export default function Footer() {
             </h4>
             <ul className="space-y-3 text-sm">
               {[
-                { to: '/account', label: 'Customer Account & Orders' },
-                { to: '/admin', label: '🔑 Store Owner Panel (Admin CMS)' },
+                { to: '/account', label: 'My Account & Orders' },
                 { to: '/account?tab=orders', label: 'Track Delivery' },
-                { to: '/faq', label: 'Customer FAQ' },
+                { to: '/faq', label: 'FAQ' },
                 { to: '/privacy-policy', label: 'Privacy Policy' },
                 { to: '/terms', label: 'Terms of Service' },
-                { to: '/shipping-policy', label: 'White-Glove Shipping' },
-                { to: '/return-policy', label: 'Return & Guarantee' },
+                { to: '/shipping-policy', label: 'Shipping Policy' },
+                { to: '/return-policy', label: 'Return & Replacement' },
               ].map(item => (
                 <li key={item.to}>
                   <Link to={item.to} className="transition-colors duration-300 text-[#B8BDC8] hover:text-[#D4AF37]">
@@ -155,7 +154,7 @@ export default function Footer() {
           {/* Contact */}
           <div className="space-y-4">
             <h4 className="text-xs font-mono uppercase tracking-[0.2em] font-bold text-[#F8F8F8]">
-              Morbi Flagship Store
+              Contact Us
             </h4>
             <ul className="space-y-3.5 text-sm">
               <li className="flex items-start gap-2.5 text-[#B8BDC8]">

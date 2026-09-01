@@ -72,7 +72,7 @@
   .glass-card:hover {
     border-color: rgba(212, 175, 55, 0.45);
     box-shadow: 0 25px 60px -10px rgba(0, 0, 0, 0.9), 0 0 30px rgba(212, 175, 55, 0.22);
-    transform: translateY(-4px);
+    transform: translateY(-6px) scale(1.01);
   }
 
   .apple-glass {
@@ -96,7 +96,64 @@
   .apple-glass-card:hover {
     border-color: rgba(212, 175, 55, 0.5);
     box-shadow: 0 30px 60px -10px rgba(0, 0, 0, 0.95), 0 0 35px rgba(212, 175, 55, 0.25);
-    transform: translateY(-4px);
+    transform: translateY(-6px) scale(1.01);
+  }
+
+  /* ── 3D Perspective Tilt Card ── */
+  .card-3d-perspective {
+    perspective: 1000px;
+    transform-style: preserve-3d;
+  }
+
+  .card-3d-content {
+    transition: transform 0.6s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.6s ease;
+  }
+
+  .card-3d-perspective:hover .card-3d-content {
+    transform: translateY(-8px) rotateX(4deg) rotateY(-2deg);
+    box-shadow: 0 30px 70px -10px rgba(0, 0, 0, 0.95), 0 0 40px rgba(212, 175, 55, 0.3);
+  }
+
+  /* ── Unique Keyframe Animations ── */
+  @keyframes floatSlow {
+    0%, 100% { transform: translateY(0px) rotate(0deg); }
+    50% { transform: translateY(-10px) rotate(1deg); }
+  }
+
+  @keyframes borderGlowPulse {
+    0%, 100% { border-color: rgba(212, 175, 55, 0.3); box-shadow: 0 0 15px rgba(212, 175, 55, 0.15); }
+    50% { border-color: rgba(15, 174, 114, 0.6); box-shadow: 0 0 30px rgba(15, 174, 114, 0.35); }
+  }
+
+  @keyframes shimmerGold {
+    0% { background-position: -200% 0; }
+    100% { background-position: 200% 0; }
+  }
+
+  @keyframes auroraGlow {
+    0%, 100% { opacity: 0.4; transform: scale(1) translate(0, 0); }
+    50% { opacity: 0.8; transform: scale(1.1) translate(-20px, 15px); }
+  }
+
+  .animate-float-slow {
+    animation: floatSlow 6s ease-in-out infinite;
+  }
+
+  .animate-border-glow {
+    animation: borderGlowPulse 4s ease-in-out infinite;
+  }
+
+  .animate-aurora {
+    animation: auroraGlow 12s ease-in-out infinite;
+  }
+
+  .shimmer-text-gold {
+    background: linear-gradient(90deg, #F8F8F8 0%, #E7C76A 25%, #D4AF37 50%, #E7C76A 75%, #F8F8F8 100%);
+    background-size: 200% auto;
+    color: transparent;
+    -webkit-background-clip: text;
+    background-clip: text;
+    animation: shimmerGold 5s linear infinite;
   }
 
   /* ── Reflection Sweep Keyframe & Overlay ── */
@@ -368,24 +425,76 @@ html.light footer {
   color: #0F172A !important;
 }
 
+/* ── Universal Modal Backdrop Overlay (Prevents Background Bleed in Light & Dark Mode) ── */
+.bm-modal-overlay,
+[class*="fixed inset-0 z-50"] {
+  background-color: rgba(0, 0, 0, 0.88) !important;
+  backdrop-filter: blur(14px) !important;
+  -webkit-backdrop-filter: blur(14px) !important;
+}
+
+html.light .bm-modal-overlay,
+html.light [class*="fixed inset-0 z-50"] {
+  background-color: rgba(15, 23, 42, 0.88) !important;
+  backdrop-filter: blur(14px) !important;
+  -webkit-backdrop-filter: blur(14px) !important;
+}
+
+/* ── Universal Modal Cards ── */
+.bm-modal-card {
+  background-color: #0D1117 !important;
+  color: #F8F8F8 !important;
+  border-color: rgba(255, 255, 255, 0.12) !important;
+}
+
+html.light .bm-modal-card {
+  background-color: #FFFFFF !important;
+  color: #0F172A !important;
+  border-color: #E2E8F0 !important;
+  box-shadow: 0 25px 70px -10px rgba(0, 0, 0, 0.4) !important;
+}
+
+/* ── Solid High-Contrast Red Warning Box ── */
+.bm-solid-red-card {
+  background-color: #200508 !important;
+  border: 2px solid #EF4444 !important;
+  color: #FEE2E2 !important;
+  box-shadow: 0 10px 35px rgba(239, 68, 68, 0.25) !important;
+}
+
+.bm-solid-red-card * {
+  color: #FEE2E2 !important;
+}
+
+.bm-solid-red-card strong,
+.bm-solid-red-card b {
+  color: #FFFFFF !important;
+}
+
 /* ═══════════════════════════════════════════════════════
    BUTTONS & ACTIONS (PRESERVING CRISP WHITE TEXT)
 ════════════════════════════════════════════════════════ */
 
-/* Primary Emerald Gradient Buttons: ALWAYS WHITE TEXT */
+/* Primary Emerald Gradient Buttons & Badges: ALWAYS PURE WHITE TEXT */
+[class*="from-[#0FAE72]"],
+[class*="from-[#0FAE72]"] *,
+[class*="bg-[#0FAE72]"],
+[class*="bg-[#0FAE72]"] *,
+html.light [class*="from-[#0FAE72]"],
+html.light [class*="from-[#0FAE72]"] *,
+html.light [class*="bg-[#0FAE72]"],
+html.light [class*="bg-[#0FAE72]"] *,
+html.light .btn-luxury-primary,
+html.light .btn-luxury-primary * {
+  color: #FFFFFF !important;
+}
+
 html.light [class*="from-[#0FAE72]"],
 html.light [class*="bg-[#0FAE72]"],
 html.light .btn-luxury-primary {
   background: linear-gradient(135deg, #059669 0%, #047857 100%) !important;
-  color: #FFFFFF !important;
   border-color: rgba(5, 150, 105, 0.3) !important;
-  box-shadow: 0 6px 20px rgba(5, 150, 105, 0.25) !important;
-}
-
-html.light [class*="from-[#0FAE72]"] *,
-html.light [class*="bg-[#0FAE72]"] *,
-html.light .btn-luxury-primary * {
-  color: #FFFFFF !important;
+  box-shadow: 0 4px 16px rgba(5, 150, 105, 0.25) !important;
 }
 
 /* Secondary Gold Action Buttons & Badges */
@@ -398,15 +507,15 @@ html.light [class*="from-[#D4AF37]"] * {
   color: #FFFFFF !important;
 }
 
-/* Gold Text Accent Overrides in Light Mode */
-html.light [class*="text-[#D4AF37]"],
-html.light [class*="text-[#E7C76A]"] {
+/* Standalone Gold Text Accent Overrides in Light Mode */
+html.light [class*="text-[#D4AF37]"]:not([class*="bg-"]):not([class*="from-"]),
+html.light [class*="text-[#E7C76A]"]:not([class*="bg-"]):not([class*="from-"]) {
   color: #B45309 !important;
 }
 
-/* Emerald Text Accent Overrides in Light Mode */
-html.light [class*="text-[#0FAE72]"],
-html.light [class*="text-[#10C480]"] {
+/* Standalone Emerald Text Accent Overrides in Light Mode */
+html.light [class*="text-[#0FAE72]"]:not([class*="bg-"]):not([class*="from-"]),
+html.light [class*="text-[#10C480]"]:not([class*="bg-"]):not([class*="from-"]) {
   color: #047857 !important;
 }
 
@@ -473,6 +582,44 @@ html.light [class*="bg-[#D4AF37]/15"] {
   background-color: #FEF3C7 !important;
   border-color: #FDE68A !important;
   color: #92400E !important;
+}
+
+/* ═══════════════════════════════════════════════════════
+   MOBILE-FIRST LUXURY APP ENHANCEMENTS
+════════════════════════════════════════════════════════ */
+
+/* Smooth momentum scrolling for mobile */
+.scrollbar-none {
+  -ms-overflow-style: none !important;
+  scrollbar-width: none !important;
+}
+.scrollbar-none::-webkit-scrollbar {
+  display: none !important;
+}
+
+/* Safe area insets for notched phones (iPhone, Android) */
+.pb-safe {
+  padding-bottom: calc(env(safe-area-inset-bottom, 0px) + 16px);
+}
+.pt-safe {
+  padding-top: calc(env(safe-area-inset-top, 0px) + 16px);
+}
+
+/* Remove tap highlight flash on mobile */
+* {
+  -webkit-tap-highlight-color: transparent;
+}
+
+/* Mobile snap carousel */
+.mobile-snap-carousel {
+  display: flex;
+  overflow-x: auto;
+  scroll-snap-type: x mandatory;
+  -webkit-overflow-scrolling: touch;
+}
+.mobile-snap-carousel > * {
+  scroll-snap-align: start;
+  flex-shrink: 0;
 }
 
 /* Image Thumbnails on Compare Page in Light Mode */

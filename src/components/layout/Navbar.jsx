@@ -3,7 +3,7 @@ import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { 
   ShoppingBag, Heart, Search, User, ShieldCheck, Menu, X, 
   Sparkles, SlidersHorizontal, ArrowRight, PhoneCall, Store,
-  Layers, Lock, Recycle, Sun, Moon
+  Layers, Lock, Recycle, Sun, Moon, MessageSquare
 } from 'lucide-react';
 import { storeCMS } from '../../services/storeCMS';
 import { EMBEDDED_BM_LOGO } from '../../assets/embeddedAssets';
@@ -95,7 +95,7 @@ export default function Navbar({ onOpenSearch, onToggleTheme, isDark = true }) {
                 BALAJI MOBILE
               </span>
               <span className="text-[10px] uppercase tracking-[0.25em] font-mono font-semibold text-[#B8BDC8]">
-                LUXURY SHOWROOM
+                MORBI, GUJARAT
               </span>
             </div>
           </Link>
@@ -142,7 +142,7 @@ export default function Navbar({ onOpenSearch, onToggleTheme, isDark = true }) {
             </Link>
 
             <Link to="/stores" className="transition-colors duration-300 hover:text-[#F8F8F8]">
-              Lounge Location
+              Store Location
             </Link>
           </div>
 
@@ -156,7 +156,7 @@ export default function Navbar({ onOpenSearch, onToggleTheme, isDark = true }) {
             >
               <Search className="w-4 h-4 text-[#D4AF37] group-hover:scale-110 transition-transform" />
               <span className="hidden sm:inline text-xs font-mono text-[#B8BDC8] group-hover:text-[#F8F8F8]">
-                Search Flagship...
+                Search phones...
               </span>
             </button>
 
@@ -231,31 +231,52 @@ export default function Navbar({ onOpenSearch, onToggleTheme, isDark = true }) {
 
         {/* ── Mobile Navigation Overlay ── */}
         {mobileMenuOpen && (
-          <div className="lg:hidden border-b border-white/[0.08] px-4 pt-4 pb-6 space-y-4 bg-[#050505]/95 backdrop-blur-[30px]">
-            <div className="grid grid-cols-2 gap-3 text-sm font-medium">
+          <div className="lg:hidden border-b border-white/[0.08] px-4 pt-4 pb-6 space-y-4 bg-[#050505]/95 backdrop-blur-[30px] animate-in fade-in slide-in-from-top-2 duration-200">
+            <div className="grid grid-cols-2 gap-2.5 text-sm font-medium">
               {[
                 { to: '/', label: 'Showroom' },
                 { to: '/products', label: 'All Phones' },
                 { to: '/compare', label: `Compare (${compareCount})` },
                 { to: '/account', label: 'My Orders' },
-                { to: '/stores', label: 'Morbi Lounge' },
+                { to: '/stores', label: 'Store Location' },
               ].map(({ to, label }) => (
                 <Link key={to}
                   onClick={() => setMobileMenuOpen(false)}
                   to={to}
-                  className="p-3.5 rounded-2xl text-center font-bold text-[#F8F8F8] bg-white/[0.04] border border-white/[0.08] hover:border-[#D4AF37]/50 transition-all"
+                  className="p-3 rounded-2xl text-center font-bold text-[#F8F8F8] bg-white/[0.04] border border-white/[0.08] hover:border-[#D4AF37]/50 active:scale-95 transition-all text-xs"
                 >
                   {label}
                 </Link>
               ))}
               <Link onClick={() => setMobileMenuOpen(false)} to="/second-hand"
-                className="p-3.5 rounded-2xl text-center font-bold bg-[#D4AF37]/15 text-[#E7C76A] border border-[#D4AF37]/40"
+                className="p-3 rounded-2xl text-center font-bold bg-[#D4AF37]/15 text-[#E7C76A] border border-[#D4AF37]/40 active:scale-95 text-xs"
               >
                 💎 Pre-Owned
               </Link>
             </div>
+
+            {/* Mobile Call & WhatsApp Quick Buttons */}
+            <div className="grid grid-cols-2 gap-2.5 pt-1">
+              <a 
+                href={`tel:${settings.supportPhone || '7990648756'}`}
+                className="py-3 px-3 rounded-2xl bg-white/[0.05] border border-white/[0.1] text-[#F8F8F8] font-bold text-xs flex items-center justify-center gap-2 active:scale-95 transition"
+              >
+                <PhoneCall className="w-3.5 h-3.5 text-[#D4AF37]" />
+                <span>Call Store</span>
+              </a>
+              <a 
+                href={`https://wa.me/917990648756?text=${encodeURIComponent('Hello Balaji Mobile! I want to inquire about smartphones and offers.')}`}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="py-3 px-3 rounded-2xl bg-emerald-500/20 border border-emerald-500/40 text-emerald-400 font-bold text-xs flex items-center justify-center gap-2 active:scale-95 transition"
+              >
+                <MessageSquare className="w-3.5 h-3.5 text-emerald-400" />
+                <span>WhatsApp</span>
+              </a>
+            </div>
+
             <Link onClick={() => setMobileMenuOpen(false)} to="/admin"
-              className="block text-center py-3.5 rounded-2xl font-bold text-sm text-[#050505] bg-gradient-to-r from-[#D4AF37] to-[#E7C76A]"
+              className="block text-center py-3.5 rounded-2xl font-bold text-xs text-[#050505] bg-gradient-to-r from-[#D4AF37] to-[#E7C76A] active:scale-95 shadow-md"
             >
               Store Owner Portal
             </Link>

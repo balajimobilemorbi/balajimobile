@@ -11,12 +11,12 @@ import { invoicePdfService } from '../services/invoicePdfService';
 export default function CustomerAccountPage() {
   const [searchParams] = useSearchParams();
   const [activeTab, setActiveTab] = useState(searchParams.get('tab') || 'orders');
-  const [orders, setOrders] = useState(storeCMS.getOrders());
-  const [wishlistIds, setWishlistIds] = useState(storeCMS.getWishlist());
+  const [currentUser, setCurrentUser] = useState(() => storeCMS.getUser());
+  const [orders, setOrders] = useState(() => storeCMS.getUserOrders(storeCMS.getUser()));
+  const [wishlistIds, setWishlistIds] = useState(() => storeCMS.getWishlist());
   const [selectedInvoiceOrder, setSelectedInvoiceOrder] = useState(null);
 
   // User Profile Edit Modal State
-  const [currentUser, setCurrentUser] = useState(storeCMS.getUser());
   const [showEditModal, setShowEditModal] = useState(false);
   const [editName, setEditName] = useState('');
   const [editEmail, setEditEmail] = useState('');
@@ -35,9 +35,10 @@ export default function CustomerAccountPage() {
 
   useEffect(() => {
     const handleUpdate = () => {
-      setOrders(storeCMS.getOrders());
+      const user = storeCMS.getUser();
+      setCurrentUser(user);
+      setOrders(storeCMS.getUserOrders(user));
       setWishlistIds(storeCMS.getWishlist());
-      setCurrentUser(storeCMS.getUser());
     };
     window.addEventListener('bm_cms_update', handleUpdate);
     return () => window.removeEventListener('bm_cms_update', handleUpdate);
@@ -88,7 +89,7 @@ export default function CustomerAccountPage() {
   const handleCancelOrder = (id) => {
     if (confirm("Are you sure you want to request cancellation for this order?")) {
       storeCMS.updateOrderStatus(id, 'Cancelled');
-      setOrders(storeCMS.getOrders());
+      setOrders(storeCMS.getUserOrders(storeCMS.getUser()));
     }
   };
 
@@ -193,7 +194,21 @@ export default function CustomerAccountPage() {
       {/* Orders Tab Content */}
       {activeTab === 'orders' && (
         <div className="space-y-6">
-          {orders.length > 0 ? (
+          {!currentUser ? (
+            <div className="text-center py-16 px-4 space-y-4 rounded-[28px] bg-[#0D1117] border border-white/[0.08]">
+              <Package className="w-12 h-12 text-[#D4AF37] mx-auto" />
+              <h3 className="font-display font-bold text-xl text-[#F8F8F8]">Please Sign In to View Your Orders</h3>
+              <p className="text-xs text-[#B8BDC8] font-mono max-w-sm mx-auto">
+                Sign in with your registered email or mobile number to view your private smartphone orders, track live dispatch, and download GST tax invoices.
+              </p>
+              <button 
+                onClick={() => window.dispatchEvent(new CustomEvent('bm_require_auth', {}))}
+                className="inline-block px-6 py-3 rounded-2xl bg-[#0FAE72] text-[#050505] font-mono text-xs font-bold hover:bg-[#D4AF37] transition shadow-lg active:scale-95"
+              >
+                Customer Login / Register
+              </button>
+            </div>
+          ) : orders.length > 0 ? (
             orders.map(order => (
               <div key={order.id} className="p-7 rounded-[28px] bg-[#0D1117] border border-white/[0.08] space-y-6 shadow-[0_20px_50px_rgba(0,0,0,0.8)]">
                 
@@ -254,8 +269,8 @@ export default function CustomerAccountPage() {
           ) : (
             <div className="text-center py-16 space-y-4 rounded-[28px] bg-[#0D1117] border border-white/[0.08]">
               <Package className="w-12 h-12 text-[#D4AF37] mx-auto" />
-              <h3 className="font-display font-bold text-xl text-[#F8F8F8]">No Orders Found</h3>
-              <p className="text-xs text-[#B8BDC8] font-mono">Explore our flagship smartphones catalog and place your first order.</p>
+              <h3 className="font-display font-bold text-xl text-[#F8F8F8]">No Orders Placed Yet</h3>
+              <p className="text-xs text-[#B8BDC8] font-mono">You haven't placed any smartphone orders on this account yet.</p>
               <Link to="/products" className="inline-block px-5 py-2.5 rounded-2xl bg-[#0FAE72] text-[#050505] font-mono text-xs font-bold hover:bg-[#D4AF37] transition">
                 Browse Flagship Mobiles
               </Link>

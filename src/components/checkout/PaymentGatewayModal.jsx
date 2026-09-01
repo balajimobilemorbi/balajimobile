@@ -2,7 +2,8 @@ import React, { useState, useEffect } from 'react';
 import {
   Lock, QrCode, CreditCard, ShieldCheck, CheckCircle2,
   Smartphone, Building2, RefreshCw, X,
-  Clock, Copy, ExternalLink, Check, AlertTriangle, Zap
+  Clock, Copy, ExternalLink, Check, AlertTriangle, Zap,
+  Upload, Image as ImageIcon, Trash2, Info
 } from 'lucide-react';
 import confetti from 'canvas-confetti';
 import { storeCMS } from '../../services/storeCMS';
@@ -24,6 +25,12 @@ export default function PaymentGatewayModal({ orderDetails, onSuccess, onCancel 
   const [countdown, setCountdown] = useState(600);
   const [copiedUpi, setCopiedUpi] = useState(false);
   const [error, setError] = useState('');
+  
+  // UPI / Screenshot & UTR state
+  const [utrInput, setUtrInput] = useState('');
+  const [screenshotPreview, setScreenshotPreview] = useState(null);
+
+  // Card Inputs
   const [cardNumber, setCardNumber] = useState('');
   const [cardExpiry, setCardExpiry] = useState('');
   const [cardCvv, setCardCvv]   = useState('');
@@ -44,35 +51,95 @@ export default function PaymentGatewayModal({ orderDetails, onSuccess, onCancel 
       }
     };
     window.addEventListener('keydown', handleKeyDown);
+    const prev = document.body.style.overflow;
+    document.body.style.overflow = 'hidden';
+
     const t = setInterval(() => setCountdown(p => { if (p <= 1) { clearInterval(t); return 0; } return p - 1; }), 1000);
     return () => {
       window.removeEventListener('keydown', handleKeyDown);
+      document.body.style.overflow = prev;
       clearInterval(t);
     };
   }, [onCancel]);
 
   const fmt = (s) => `${String(Math.floor(s / 60)).padStart(2, '0')}:${String(s % 60).padStart(2, '0')}`;
 
-  const completeOrder = (method, payId, pendingVerification = false) => {
+  const handleScreenshotChange = (e) => {
+    const file = e.target.files && e.target.files[0];
+    if (!file) return;
+    if (!file.type.startsWith('image/')) {
+      setError('Please select a valid image file (PNG, JPG, JPEG, WEBP).');
+      return;
+    }
+    setError('');
+
+    const reader = new FileReader();
+    reader.onload = (event) => {
+      const img = new Image();
+      img.onload = () => {
+        const canvas = document.createElement('canvas');
+        const MAX_DIM = 800;
+        let width = img.width;
+        let height = img.height;
+        if (width > height) {
+          if (width > MAX_DIM) {
+            height = Math.round((height * MAX_DIM) / width);
+            width = MAX_DIM;
+          }
+        } else {
+          if (height > MAX_DIM) {
+            width = Math.round((width * MAX_DIM) / height);
+            height = MAX_DIM;
+          }
+        }
+        canvas.width = width;
+        canvas.height = height;
+        const ctx = canvas.getContext('2d');
+        ctx.drawImage(img, 0, 0, width, height);
+        const compressed = canvas.toDataURL('image/jpeg', 0.75);
+        setScreenshotPreview(compressed);
+      };
+      img.src = event.target.result;
+    };
+    reader.readAsDataURL(file);
+  };
+
+  const completeOrder = (method, payId, pendingVerification = false, screenshot = null) => {
     const payStatus = pendingVerification
-      ? `${method} — Pending Owner Verification`
-      : method === 'Cash on Delivery' ? 'Pending COD' : 'Paid';
+      ? `${method} — Pending Owner Bank Verification`
+      : method === 'Cash on Delivery' ? 'Pending COD' : 'Paid & Verified';
 
     onSuccess({
-      paymentId: payId,
+      paymentId: payId || `PAY-${Date.now()}`,
+      utrNumber: payId || '',
       status: pendingVerification ? 'PENDING_VERIFICATION' : 'SUCCESS',
       method,
       payStatus,
       pendingVerification,
+      screenshot: screenshot || screenshotPreview || null
     });
   };
 
   const handleUpiIPaid = () => {
+    if (!utrInput && !screenshotPreview) {
+      setError('Please enter your 12-digit UPI UTR number or upload payment screenshot to verify your payment.');
+      return;
+    }
+
+    if (utrInput && utrInput.trim().length > 0) {
+      const check = paymentVerifier.verifyUtrNumber(utrInput, orderDetails.totalAmount);
+      if (!check.valid && !screenshotPreview) {
+        setError(check.message);
+        return;
+      }
+    }
+
+    setError('');
     setIsProcessing(true);
     setTimeout(() => {
       setIsProcessing(false);
       try { confetti({ particleCount: 120, spread: 80 }); } catch (_) {}
-      completeOrder('UPI / GPay / PhonePe', `UPI-${Date.now()}`, true);
+      completeOrder('UPI / GPay / PhonePe', utrInput || `UPI-${Date.now()}`, true, screenshotPreview);
     }, 1200);
   };
 
@@ -86,7 +153,7 @@ export default function PaymentGatewayModal({ orderDetails, onSuccess, onCancel 
     setTimeout(() => {
       setIsProcessing(false);
       try { confetti({ particleCount: 120, spread: 80 }); } catch (_) {}
-      completeOrder('Credit / Debit Card', `CARD-${Date.now()}`, true);
+      completeOrder('Credit / Debit Card', `CARD-${Date.now()}`, true, screenshotPreview);
     }, 1800);
   };
 
@@ -95,28 +162,28 @@ export default function PaymentGatewayModal({ orderDetails, onSuccess, onCancel 
     setTimeout(() => {
       setIsProcessing(false);
       try { confetti({ particleCount: 120, spread: 80 }); } catch (_) {}
-      completeOrder(`Net Banking (${bank})`, `NB-${Date.now()}`, true);
+      completeOrder(`Net Banking (${bank})`, `NB-${Date.now()}`, true, screenshotPreview);
     }, 1800);
   };
 
   const handleRazorpay = async () => {
     setError('');
-    if (!rzpKey) { setError('Razorpay Key not set. Go to Admin → Settings → Razorpay Key.'); return; }
+    if (!rzpKey) { setError('Razorpay Key not configured. Please choose UPI / GPay QR mode above.'); return; }
     setIsProcessing(true);
     const ok = await loadRazorpay();
-    if (!ok) { setError('Could not load Razorpay. Check internet.'); setIsProcessing(false); return; }
+    if (!ok) { setError('Could not load Razorpay. Check internet connection.'); setIsProcessing(false); return; }
     const rzp = new window.Razorpay({
       key: rzpKey,
       amount: orderDetails.totalAmount * 100,
       currency: 'INR',
       name: 'Balaji Mobile Showroom',
-      description: 'Luxury Smartphone Acquisition',
+      description: 'Flagship Smartphone Acquisition',
       theme: { color: '#D4AF37' },
       prefill: { name: orderDetails.customerName, email: orderDetails.email, contact: orderDetails.phone },
       handler: (res) => {
         setIsProcessing(false);
         try { confetti({ particleCount: 150, spread: 90 }); } catch (_) {}
-        completeOrder('Razorpay (Verified)', res.razorpay_payment_id, false);
+        completeOrder('Razorpay (Verified)', res.razorpay_payment_id, false, screenshotPreview);
       },
       modal: { ondismiss: () => { setIsProcessing(false); setError('Payment cancelled. Please try again.'); } },
     });
@@ -132,11 +199,17 @@ export default function PaymentGatewayModal({ orderDetails, onSuccess, onCancel 
   ];
 
   return (
-    <div className="fixed inset-0 z-50 bg-[#050505]/85 backdrop-blur-[30px] flex items-center justify-center p-4 overflow-y-auto">
-      <div className="bg-[#0D1117] border border-white/[0.08] text-[#F8F8F8] rounded-[28px] max-w-lg w-full shadow-[0_30px_70px_rgba(0,0,0,0.95)] relative my-6 overflow-hidden">
+    <div 
+      className="fixed inset-0 z-50 flex items-center justify-center p-4 overflow-y-auto font-sans bm-modal-overlay animate-in fade-in duration-200"
+      style={{ backgroundColor: 'rgba(0, 0, 0, 0.88)', backdropFilter: 'blur(16px)' }}
+    >
+      <div 
+        className="bg-[#0D1117] border-2 border-[#D4AF37]/40 text-[#F8F8F8] rounded-[28px] max-w-lg w-full shadow-[0_30px_80px_rgba(0,0,0,0.95)] relative my-auto overflow-hidden max-h-[92vh] flex flex-col bm-modal-card"
+        style={{ backgroundColor: '#0D1117' }}
+      >
 
         {/* Header */}
-        <div className="bg-white/[0.03] p-5 border-b border-white/[0.08] flex items-center justify-between">
+        <div className="bg-white/[0.03] p-4 sm:p-5 border-b border-white/[0.08] flex items-center justify-between shrink-0">
           <div className="flex items-center gap-3">
             <div className="w-10 h-10 rounded-2xl bg-white/[0.05] border border-[#D4AF37]/40 flex items-center justify-center text-[#D4AF37]">
               <Lock className="w-5 h-5" />
@@ -150,7 +223,7 @@ export default function PaymentGatewayModal({ orderDetails, onSuccess, onCancel 
         </div>
 
         {/* Amount + Timer */}
-        <div className="px-5 py-3.5 bg-[#050505] border-b border-white/[0.08] flex justify-between items-center text-xs font-mono">
+        <div className="px-5 py-3 bg-[#050505] border-b border-white/[0.08] flex justify-between items-center text-xs font-mono shrink-0">
           <div className="flex items-center gap-2">
             <span className="text-[#B8BDC8]">Acquisition Total:</span>
             <span className="font-display font-black text-[#0FAE72] text-lg">₹{orderDetails.totalAmount.toLocaleString('en-IN')}</span>
@@ -161,11 +234,22 @@ export default function PaymentGatewayModal({ orderDetails, onSuccess, onCancel 
           </div>
         </div>
 
+        {/* MANDATORY WARNING NOTIFICATION PROMPT - SOLID RED */}
+        <div 
+          className="border-b-2 border-red-500 p-3.5 sm:px-5 py-3 flex items-start gap-3 text-[11.5px] font-mono text-red-100 shadow-lg shrink-0"
+          style={{ backgroundColor: '#200508' }}
+        >
+          <AlertTriangle className="w-5 h-5 text-red-500 shrink-0 mt-0.5 animate-bounce" />
+          <p className="leading-snug">
+            <strong className="text-red-400 font-black tracking-wide uppercase">🚨 CRITICAL OWNER VERIFICATION WARNING:</strong> When you pay online, the store owner (+91 79906 48756) is notified immediately to verify bank credit. Your order will be confirmed &amp; dispatched IF AND ONLY IF payment is verified in our bank account; otherwise the order will fail or be cancelled.
+          </p>
+        </div>
+
         {/* Tabs */}
-        <div className="flex border-b border-white/[0.08] text-[11px] font-mono overflow-x-auto">
+        <div className="flex border-b border-white/[0.08] text-[11px] font-mono overflow-x-auto shrink-0">
           {TABS.map(t => (
             <button key={t.id} onClick={() => { setActiveTab(t.id); setError(''); }}
-              className={`flex-1 min-w-[75px] py-3.5 text-center border-b-2 transition-all flex items-center justify-center gap-1.5 whitespace-nowrap ${
+              className={`flex-1 min-w-[75px] py-3 text-center border-b-2 transition-all flex items-center justify-center gap-1.5 whitespace-nowrap ${
                 activeTab === t.id
                   ? 'border-[#D4AF37] text-[#E7C76A] font-bold bg-white/[0.04]'
                   : 'border-transparent text-[#B8BDC8] hover:text-[#F8F8F8]'
@@ -175,30 +259,25 @@ export default function PaymentGatewayModal({ orderDetails, onSuccess, onCancel 
           ))}
         </div>
 
-        <div className="p-6 space-y-5">
+        <div className="p-4 sm:p-6 space-y-4 overflow-y-auto flex-1">
 
           {/* UPI */}
           {activeTab === 'upi' && (
             <div className="space-y-4">
-              <div className="p-3.5 rounded-2xl bg-white/[0.03] border border-white/[0.08] text-[11px] font-mono text-[#B8BDC8]">
-                <p className="font-bold text-[#D4AF37]">ℹ️ Instructions:</p>
-                <p className="mt-1">1. Scan QR code · 2. Complete payment · 3. Click "I Have Paid" below</p>
-              </div>
-
-              <div className="text-center space-y-4">
-                <div className="inline-block p-4 rounded-3xl bg-white border-2 border-[#D4AF37] shadow-xl">
+              <div className="text-center space-y-3">
+                <div className="inline-block p-3 rounded-3xl bg-white border-2 border-[#D4AF37] shadow-xl">
                   <img src={EMBEDDED_PAYMENT_QR} alt="Balaji Mobile GPay QR"
-                    className="w-52 h-52 object-contain mx-auto"
+                    className="w-44 h-44 object-contain mx-auto"
                     onError={e => { e.target.src = dynamicQrUrl; }} />
-                  <div className="mt-2 text-[11px] font-mono font-bold bg-[#050505] text-[#E7C76A] px-3 py-1 rounded-full inline-block border border-[#D4AF37]">
-                    🔒 AMOUNT: ₹{orderDetails.totalAmount.toLocaleString('en-IN')}
+                  <div className="mt-1.5 text-[10px] font-mono font-bold bg-[#050505] text-[#E7C76A] px-3 py-1 rounded-full inline-block border border-[#D4AF37]">
+                    🔒 LOCKED AMOUNT: ₹{orderDetails.totalAmount.toLocaleString('en-IN')}
                   </div>
                 </div>
 
                 <a href={upiDeepLink}
-                  className="w-full py-3 rounded-2xl bg-white/[0.05] border border-white/[0.08] hover:border-[#D4AF37]/50 text-[#F8F8F8] hover:text-[#D4AF37] font-mono font-bold text-xs flex items-center justify-center gap-2 transition">
+                  className="w-full py-2.5 rounded-2xl bg-white/[0.05] border border-white/[0.08] hover:border-[#D4AF37]/50 text-[#F8F8F8] hover:text-[#D4AF37] font-mono font-bold text-xs flex items-center justify-center gap-2 transition">
                   <Smartphone className="w-4 h-4 text-[#D4AF37]" />
-                  <span>Open GPay / PhonePe App</span>
+                  <span>Open GPay / PhonePe / Paytm App</span>
                   <ExternalLink className="w-3.5 h-3.5" />
                 </a>
 
@@ -211,10 +290,81 @@ export default function PaymentGatewayModal({ orderDetails, onSuccess, onCancel 
                 </div>
               </div>
 
+              {/* UTR Input Field */}
+              <div>
+                <label className="block text-[11px] font-mono text-[#D4AF37] uppercase mb-1 font-bold">
+                  12-Digit UPI UTR / Transaction Reference No. *
+                </label>
+                <input 
+                  type="text" 
+                  maxLength={22}
+                  placeholder="e.g. 4289 1029 3847"
+                  value={utrInput} 
+                  onChange={e => { setUtrInput(e.target.value); setError(''); }}
+                  className="w-full px-4 py-2.5 rounded-2xl bg-white/[0.04] border border-white/[0.08] text-xs font-mono focus:border-[#D4AF37] outline-none text-[#F8F8F8] tracking-widest text-center"
+                />
+              </div>
+
+              {/* PAYMENT SCREENSHOT UPLOADER */}
+              <div className="p-3.5 rounded-2xl bg-white/[0.03] border border-white/[0.08] space-y-2.5">
+                <div className="flex items-center justify-between">
+                  <label className="text-[11px] font-mono text-[#E7C76A] font-bold flex items-center gap-1.5">
+                    <ImageIcon className="w-4 h-4 text-[#D4AF37]" />
+                    <span>Upload Payment Screenshot (Proof) *</span>
+                  </label>
+                  {screenshotPreview && (
+                    <span className="text-[10px] text-[#0FAE72] font-mono font-bold flex items-center gap-1">
+                      <CheckCircle2 className="w-3.5 h-3.5" /> Attached
+                    </span>
+                  )}
+                </div>
+
+                {screenshotPreview ? (
+                  <div className="relative rounded-xl border border-[#0FAE72]/50 bg-[#050505] p-2 flex items-center gap-3">
+                    <img 
+                      src={screenshotPreview} 
+                      alt="Payment Proof Screenshot" 
+                      className="w-16 h-16 object-cover rounded-lg border border-white/[0.1]" 
+                    />
+                    <div className="flex-1 min-w-0 font-mono text-[11px]">
+                      <p className="text-[#0FAE72] font-bold">Screenshot Attached</p>
+                      <p className="text-[#B8BDC8] text-[10px] truncate">Will be verified by Balaji Owner</p>
+                    </div>
+                    <button 
+                      type="button"
+                      onClick={() => setScreenshotPreview(null)}
+                      className="p-2 rounded-lg bg-rose-500/20 text-rose-400 hover:bg-rose-500/30 transition text-xs font-mono"
+                      title="Remove Screenshot"
+                    >
+                      <Trash2 className="w-4 h-4" />
+                    </button>
+                  </div>
+                ) : (
+                  <label className="flex flex-col items-center justify-center p-3.5 border border-dashed border-[#D4AF37]/50 hover:border-[#D4AF37] rounded-xl bg-white/[0.02] cursor-pointer hover:bg-white/[0.04] transition group text-center">
+                    <Upload className="w-5 h-5 text-[#D4AF37] group-hover:scale-110 transition duration-200" />
+                    <span className="text-[11px] text-[#F8F8F8] font-mono font-bold mt-1">Click to Upload GPay / UPI Screenshot</span>
+                    <span className="text-[10px] text-[#B8BDC8] font-mono">PNG, JPG, JPEG or WEBP</span>
+                    <input 
+                      type="file" 
+                      accept="image/*" 
+                      onChange={handleScreenshotChange} 
+                      className="hidden" 
+                    />
+                  </label>
+                )}
+              </div>
+
+              {error && (
+                <p className="text-xs font-mono text-rose-400 flex items-center gap-1.5 bg-rose-500/10 p-2.5 rounded-xl border border-rose-500/30">
+                  <AlertTriangle className="w-4 h-4 shrink-0" />
+                  <span>{error}</span>
+                </p>
+              )}
+
               <button onClick={handleUpiIPaid} disabled={isProcessing || countdown === 0}
                 className="w-full py-4 rounded-2xl bg-gradient-to-r from-[#0FAE72] to-[#0B8F5C] hover:from-[#D4AF37] hover:to-[#E7C76A] hover:text-[#050505] text-white font-bold text-sm transition flex items-center justify-center gap-2 disabled:opacity-50 font-sans shadow-lg">
                 {isProcessing
-                  ? <><RefreshCw className="w-5 h-5 animate-spin" /><span>Processing Confirmation...</span></>
+                  ? <><RefreshCw className="w-5 h-5 animate-spin" /><span>Submitting Payment Proof...</span></>
                   : <><CheckCircle2 className="w-5 h-5" /><span>I Have Paid ₹{orderDetails.totalAmount.toLocaleString('en-IN')} — Place Order</span></>}
               </button>
             </div>
@@ -275,7 +425,18 @@ export default function PaymentGatewayModal({ orderDetails, onSuccess, onCancel 
                 </div>
                 <p className="text-xs text-[#B8BDC8] font-mono">Real-time payment confirmation across Cards, UPI, Wallets &amp; NetBanking.</p>
               </div>
-              {error && <p className="text-xs font-mono text-rose-400 flex items-center gap-1.5"><AlertTriangle className="w-4 h-4" />{error}</p>}
+              {error && (
+                <div className="space-y-2">
+                  <p className="text-xs font-mono text-rose-400 flex items-center gap-1.5"><AlertTriangle className="w-4 h-4" />{error}</p>
+                  <button 
+                    type="button" 
+                    onClick={() => setActiveTab('upi')} 
+                    className="w-full py-2.5 rounded-xl bg-[#D4AF37]/20 border border-[#D4AF37] text-[#E7C76A] text-xs font-mono font-bold hover:bg-[#D4AF37]/30 transition"
+                  >
+                    ⚡ Switch to Instant UPI QR Payment
+                  </button>
+                </div>
+              )}
               <button onClick={handleRazorpay} disabled={isProcessing || countdown === 0}
                 className="w-full py-4 rounded-2xl bg-gradient-to-r from-[#0FAE72] to-[#0B8F5C] hover:from-[#D4AF37] hover:to-[#E7C76A] hover:text-[#050505] text-white font-bold text-base transition flex items-center justify-center gap-2 disabled:opacity-50 font-sans shadow-lg">
                 {isProcessing ? <><RefreshCw className="w-5 h-5 animate-spin" /><span>Opening Gateway...</span></> : <><Zap className="w-5 h-5" /><span>Pay ₹{orderDetails.totalAmount.toLocaleString('en-IN')} via Razorpay</span></>}

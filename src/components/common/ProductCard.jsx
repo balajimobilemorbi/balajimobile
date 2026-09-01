@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { Heart, ShoppingBag, Star, Zap, Check, Layers, Recycle, Share2 } from 'lucide-react';
+import { Heart, ShoppingBag, Star, Zap, Check, Layers, Recycle, Share2, Sparkles } from 'lucide-react';
+import { motion } from 'framer-motion';
 import { storeCMS } from '../../services/storeCMS';
 import { sharePhoneDetails } from '../../utils/shareUtils';
 
@@ -60,7 +61,15 @@ export default function ProductCard({ product }) {
   };
 
   return (
-    <div onClick={handleCardClick} className="group relative rounded-[24px] sm:rounded-[28px] bg-white/[0.05] backdrop-blur-[30px] border border-white/[0.08] p-3.5 sm:p-5 transition-all duration-500 ease-[cubic-bezier(0.16,1,0.3,1)] flex flex-col justify-between overflow-hidden hover:-translate-y-2 hover:border-[#D4AF37]/50 hover:shadow-[0_20px_50px_rgba(0,0,0,0.9),0_0_30px_rgba(212,175,55,0.25)] reflection-sweep cursor-pointer">
+    <motion.div 
+      initial={{ opacity: 0, y: 20 }}
+      whileInView={{ opacity: 1, y: 0 }}
+      viewport={{ once: true }}
+      whileHover={{ y: -8, scale: 1.015 }}
+      transition={{ duration: 0.4, ease: [0.16, 1, 0.3, 1] }}
+      onClick={handleCardClick} 
+      className="group relative rounded-[24px] sm:rounded-[28px] bg-white/[0.04] backdrop-blur-[30px] border border-white/[0.08] p-3.5 sm:p-5 transition-all duration-500 flex flex-col justify-between overflow-hidden hover:border-[#D4AF37]/60 hover:shadow-[0_25px_60px_rgba(0,0,0,0.95),0_0_35px_rgba(212,175,55,0.3)] reflection-sweep cursor-pointer card-3d-perspective"
+    >
       
       {/* Top Floating Glass Badges */}
       <div className="absolute top-3 left-3 right-3 sm:top-4 sm:left-4 sm:right-4 z-20 flex items-center justify-between pointer-events-none">
@@ -73,13 +82,13 @@ export default function ProductCard({ product }) {
           ) : (
             <>
               {product.discount > 0 && (
-                <span className="px-2 py-0.5 sm:px-2.5 sm:py-1 rounded-full text-[9px] sm:text-[10px] font-bold font-mono bg-[#0FAE72]/20 text-[#10C480] border border-[#0FAE72]/40 backdrop-blur-md">
-                  <Zap className="w-2.5 h-2.5 sm:w-3 sm:h-3 fill-current inline mr-0.5 text-[#D4AF37]" />
-                  {product.discount}% OFF
+                <span className="px-2 py-0.5 sm:px-2.5 sm:py-1 rounded-full text-[9px] sm:text-[10px] font-black font-mono bg-[#0FAE72] text-white border border-[#0FAE72] shadow-sm flex items-center gap-0.5">
+                  <Zap className="w-2.5 h-2.5 sm:w-3 sm:h-3 fill-white text-white inline mr-0.5" />
+                  <span>{product.discount}% OFF</span>
                 </span>
               )}
               {product.isFlashSale && (
-                <span className="px-2 py-0.5 sm:px-2.5 sm:py-1 rounded-full text-[9px] sm:text-[10px] font-bold font-mono bg-[#D4AF37]/20 text-[#E7C76A] border border-[#D4AF37]/40 backdrop-blur-md hidden xs:inline">
+                <span className="px-2 py-0.5 sm:px-2.5 sm:py-1 rounded-full text-[9px] sm:text-[10px] font-black font-mono bg-[#D4AF37] text-[#050505] shadow-sm hidden xs:inline">
                   FLASH
                 </span>
               )}
@@ -222,6 +231,6 @@ export default function ProductCard({ product }) {
 
       </div>
 
-    </div>
+    </motion.div>
   );
 }

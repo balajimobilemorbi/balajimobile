@@ -1,12 +1,14 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { 
-  Lock, QrCode, Truck, ArrowRight
+  Lock, QrCode, Truck, ArrowRight, AlertTriangle, ShieldCheck, ShieldAlert
 } from 'lucide-react';
 import PaymentGatewayModal from '../components/checkout/PaymentGatewayModal';
+import PaymentWarningModal from '../components/checkout/PaymentWarningModal';
 import OrderSuccessModal from '../components/checkout/OrderSuccessModal';
 import { INDIA_STATES_DATA, validateAddressForm } from '../data/indiaLocations';
 import { storeCMS } from '../services/storeCMS';
+import { notificationService } from '../services/notificationService';
 
 export default function CheckoutPage() {
   const navigate = useNavigate();
@@ -29,6 +31,7 @@ export default function CheckoutPage() {
   const [formErrors, setFormErrors] = useState({});
 
   const [paymentMethod, setPaymentMethod] = useState('Razorpay UPI');
+  const [showWarningModal, setShowWarningModal] = useState(false);
   const [showGatewayModal, setShowGatewayModal] = useState(false);
   const [placedOrder, setPlacedOrder] = useState(null);
   const [showSuccessModal, setShowSuccessModal] = useState(false);
@@ -95,21 +98,23 @@ export default function CheckoutPage() {
         items: cart,
         totalAmount: grandTotal,
         paymentMethod: 'Cash on Delivery',
+        paymentStatus: 'COD — Pending',
         isGstBilling,
         gstin,
         companyName
       });
 
+      // Automatically dispatch real email bill & invoice to customer and alert to store owner
       try {
-        const waLinks = storeCMS.getWhatsAppLinks(newOrder);
-        window.open(waLinks.ownerWhatsAppUrl, '_blank');
+        notificationService.dispatchOrderNotifications(newOrder);
       } catch (e) {}
 
       storeCMS.clearCart();
       setPlacedOrder(newOrder);
       setShowSuccessModal(true);
     } else {
-      setShowGatewayModal(true);
+      // Mandatory Red Warning Popup before proceeding to payment
+      setShowWarningModal(true);
     }
   };
 
@@ -117,8 +122,8 @@ export default function CheckoutPage() {
     setShowGatewayModal(false);
 
     const payStatusLabel = paymentDetails.pendingVerification
-      ? `${paymentDetails.method} — ⚠️ Pending Owner Verification`
-      : paymentDetails.method === 'Cash on Delivery' ? 'COD — Pending' : `${paymentDetails.method} — Paid`;
+      ? `${paymentDetails.method || 'Online Payment'} — ⚠️ Pending Owner Verification`
+      : paymentDetails.method === 'Cash on Delivery' ? 'COD — Pending' : `${paymentDetails.method || 'Online Payment'} — Paid`;
 
     const newOrder = storeCMS.placeOrder({
       customerName,
@@ -132,16 +137,17 @@ export default function CheckoutPage() {
       items: cart,
       totalAmount: grandTotal,
       paymentMethod: paymentDetails.method || paymentMethod,
-      paymentId: paymentDetails.paymentId,
+      paymentId: paymentDetails.paymentId || paymentDetails.utrNumber || '',
+      paymentScreenshot: paymentDetails.screenshot || null,
       paymentStatus: payStatusLabel,
       isGstBilling,
       gstin,
       companyName
     });
 
+    // Automatically dispatch real email bill & invoice to customer and alert to store owner
     try {
-      const waLinks = storeCMS.getWhatsAppLinks(newOrder);
-      window.open(waLinks.ownerWhatsAppUrl, '_blank');
+      notificationService.dispatchOrderNotifications(newOrder);
     } catch (e) {}
 
     storeCMS.clearCart();
@@ -350,6 +356,22 @@ export default function CheckoutPage() {
                 <QrCode className="w-5 h-5 text-[#D4AF37]" />
               </label>
 
+              {/* Important Prepayment Warning Alert - HIGHLIGHTED IN SOLID RED */}
+              {paymentMethod === 'Razorpay UPI' && (
+                <div 
+                  className="p-4.5 rounded-2xl border-2 border-red-500 text-red-100 text-xs font-mono space-y-2.5 animate-in fade-in duration-300 shadow-[0_10px_35px_rgba(239,68,68,0.3)] bm-solid-red-card"
+                  style={{ backgroundColor: '#200508', borderColor: '#EF4444' }}
+                >
+                  <div className="flex items-center gap-2 font-bold text-white text-sm">
+                    <ShieldAlert className="w-5 h-5 text-red-500 shrink-0 animate-bounce" />
+                    <span className="uppercase tracking-wide">⚠️ CRITICAL PAYMENT VERIFICATION POLICY:</span>
+                  </div>
+                  <p className="text-[12px] leading-relaxed text-red-100 font-sans font-medium">
+                    When you pay using an online transaction (GPay, PhonePe, Paytm, QR, UPI, Cards, Net Banking), an instant notification is dispatched to the <strong>Owner of Balaji Mobile (+91 79906 48756)</strong>. The owner will check and verify if the payment is received and fulfilled in the store's official bank account. Your order will be confirmed &amp; dispatched IF AND ONLY IF payment is verified; otherwise, your order will fail or be cancelled. You will also be required to upload your payment screenshot proof and 12-digit UTR reference code.
+                  </p>
+                </div>
+              )}
+
               <label className={`p-4.5 rounded-2xl border flex items-center justify-between cursor-pointer transition-all duration-300 ${
                 paymentMethod === 'Cash on Delivery' ? 'bg-white/[0.04] border-[#D4AF37] text-[#E7C76A] font-bold' : 'bg-[#050505] border-white/[0.08] text-[#B8BDC8]'
               }`}>
@@ -409,6 +431,19 @@ export default function CheckoutPage() {
         </div>
 
       </form>
+
+      {/* Mandatory Red Warning Confirmation Popup */}
+      {showWarningModal && (
+        <PaymentWarningModal
+          isOpen={showWarningModal}
+          totalAmount={grandTotal}
+          onClose={() => setShowWarningModal(false)}
+          onConfirm={() => {
+            setShowWarningModal(false);
+            setShowGatewayModal(true);
+          }}
+        />
+      )}
 
       {showGatewayModal && (
         <PaymentGatewayModal

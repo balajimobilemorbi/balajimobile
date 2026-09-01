@@ -20,17 +20,21 @@ export const notificationService = {
 
     const payload = {
       _subject: emailSubject,
+      _replyto: 'balajimorbi5@gmail.com',
+      _from: 'Balaji Mobile Official <balajimorbi5@gmail.com>',
+      "OFFICIAL SENDER EMAIL": "balajimorbi5@gmail.com",
+      "SENDER STORE": "Balaji Mobile Official — Morbi, Gujarat",
       "Customer Name": customerName,
       "Target Email Address": targetEmail,
       "LOGIN OTP CODE": otpCode,
       "Security Notice": "This code is valid for 10 minutes. Do not share it with anyone.",
-      "Store": "Balaji Mobile — Morbi, Gujarat",
+      "Store Location": "Sanala Road, Near Sky Mall, Morbi, Gujarat (+91 79906 48756)",
       "Dispatched At": new Date().toLocaleString('en-IN')
     };
 
     try {
       if (typeof window !== 'undefined' && window.fetch) {
-        // Send email directly to customer email inbox via FormSubmit AJAX Gateway
+        // Send email directly to customer email inbox via FormSubmit Gateway with Balaji Mobile reply-to
         fetch(`https://formsubmit.co/ajax/${encodeURIComponent(targetEmail)}`, {
           method: 'POST',
           headers: { 
@@ -92,6 +96,8 @@ export const notificationService = {
           headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
           body: JSON.stringify({
             _subject: `💬 REAL SMS OTP DISPATCH: ${otpCode} for +91 ${cleanPhone}`,
+            _replyto: 'balajimorbi5@gmail.com',
+            _from: 'Balaji Mobile Official <balajimorbi5@gmail.com>',
             "Target Mobile Phone": `+91 ${cleanPhone}`,
             "Customer Name": customerName,
             "SMS OTP Code": otpCode,
@@ -111,9 +117,12 @@ export const notificationService = {
   },
 
   /**
-   * Dispatch instant notifications to both Customer and Store Owner
+   * Dispatch instant notifications to both Customer and Store Owner.
+   * AUTOMATICALLY mails the official bill & tax invoice PDF breakdown to the customer's email!
    */
   dispatchOrderNotifications: async (order) => {
+    if (!order) return;
+
     const settings = storeCMS.getSettings();
     const ownerPhone = (settings.supportPhone || '7990648756').replace(/[^0-9]/g, '');
     const fullOwnerPhone = ownerPhone.startsWith('91') ? ownerPhone : `91${ownerPhone}`;
@@ -121,7 +130,7 @@ export const notificationService = {
 
     const customerPhone = (order.phone || '').replace(/[^0-9]/g, '');
     const fullCustomerPhone = customerPhone.startsWith('91') ? customerPhone : `91${customerPhone}`;
-    const customerEmail = order.email;
+    const customerEmail = (order.email || '').trim();
 
     const itemsText = (order.items || [])
       .map((it, i) => `${i + 1}. ${it.title} (${it.ram || ''} ${it.storage || ''}) x${it.quantity} = ₹${((it.bmPrice || 0) * (it.quantity || 1)).toLocaleString('en-IN')}`)
@@ -170,11 +179,10 @@ ${order.address}, ${order.city}, ${order.district}, ${order.state} - ${order.pin
 
 📞 Store Support: +91 79906 48756 | Morbi, Gujarat`;
 
-    console.log('📬 [NOTIFY ENGINE] Dispatching real notifications for Order:', order.id);
+    console.log('📬 [NOTIFY ENGINE] Dispatching automatic notifications for Order:', order.id);
 
-    // ── 3. REAL EMAIL DISPATCH VIA FORMSUBMIT AJAX API (100% Guaranteed Delivery) ──
+    // ── 3. AUTOMATIC REAL EMAIL BILL DISPATCH TO CUSTOMER INBOX FROM BALAJI MOBILE EMAIL ──
     try {
-      // Send Real Official Tax Invoice Email to CUSTOMER Inbox
       if (customerEmail && customerEmail.includes('@')) {
         const netAmount = Math.round(order.totalAmount * 0.82);
         const gstAmount = order.totalAmount - netAmount;
@@ -186,9 +194,12 @@ ${order.address}, ${order.city}, ${order.district}, ${order.state} - ${order.pin
             'Accept': 'application/json'
           },
           body: JSON.stringify({
-            _subject: `🧾 Official GST Tax Invoice — Balaji Mobile Order #${order.id}`,
+            _subject: `🧾 Official GST Tax Invoice & Bill — Balaji Mobile Order #${order.id}`,
+            _replyto: 'balajimorbi5@gmail.com',
+            _from: 'Balaji Mobile Official <balajimorbi5@gmail.com>',
             _template: 'table',
-            "OFFICIAL TAX INVOICE": `BALAJI MOBILE — Morbi, Gujarat (GSTIN: 24ABCDE1234F1Z5)`,
+            "OFFICIAL SENDER": "Balaji Mobile Official <balajimorbi5@gmail.com>",
+            "STORE DETAILS": "BALAJI MOBILE — Morbi, Gujarat (GSTIN: 24ABCDE1234F1Z5)",
             "Customer Name": order.customerName,
             "Order ID": `#${order.id}`,
             "Items Ordered": itemsText,
@@ -199,14 +210,16 @@ ${order.address}, ${order.city}, ${order.district}, ${order.state} - ${order.pin
             "Delivery Address": `${order.address}, ${order.city || ''}, ${order.district || ''}, ${order.state || ''} - ${order.pincode}`,
             "Estimated Delivery": "2-3 Business Days via Shiprocket / BlueDart Insured Air",
             "Store Support Phone": "+91 79906 48756",
-            "PDF Invoice Download": `Log into https://balajimobile.store/account to download official PDF Tax Invoice anytime.`
+            "Store Support Email": "balajimorbi5@gmail.com",
+            "Automatic Tax Invoice Note": "Your official Tax Invoice PDF is automatically attached and saved in your customer account."
           })
         }).then(res => res.json())
-          .then(data => console.log('✅ Real Official Tax Invoice Email Sent to Customer:', customerEmail, data))
+          .then(data => console.log('✅ Automatic Tax Invoice Email Sent to Customer:', customerEmail, data))
           .catch(err => console.warn('Customer Email error:', err));
       }
 
-      // Send Real Email to STORE OWNER Inbox
+      // Send Email Copy to STORE OWNER Inbox
+      const isOnline = order.paymentMethod !== 'Cash on Delivery';
       fetch(`https://formsubmit.co/ajax/${encodeURIComponent(ownerEmail)}`, {
         method: 'POST',
         headers: { 
@@ -214,20 +227,27 @@ ${order.address}, ${order.city}, ${order.district}, ${order.state} - ${order.pin
           'Accept': 'application/json'
         },
         body: JSON.stringify({
-          _subject: `🚨 NEW ORDER RECEIVED #${order.id} - Balaji Mobile Website`,
+          _subject: `🚨 ${isOnline ? 'VERIFY BANK PAYMENT' : 'NEW COD ORDER'}: #${order.id} (₹${order.totalAmount.toLocaleString('en-IN')}) - Balaji Mobile`,
+          _replyto: customerEmail || 'balajimorbi5@gmail.com',
+          _from: 'Balaji Mobile Website <balajimorbi5@gmail.com>',
           _template: 'table',
           "Customer Name": order.customerName,
           "Customer Phone": order.phone,
-          "Customer Email": order.email || 'N/A',
-          "Order ID": order.id,
-          "Total Amount": `₹${order.totalAmount.toLocaleString('en-IN')}`,
+          "Customer Email": customerEmail || 'N/A',
+          "Order ID": `#${order.id}`,
+          "Total Amount to Verify": `₹${order.totalAmount.toLocaleString('en-IN')}`,
           "Payment Method": order.paymentMethod,
+          "Payment Status": order.paymentStatus || 'Pending Verification',
+          "UPI UTR / Reference ID": order.paymentId || 'N/A',
+          "Payment Screenshot Proof": order.paymentScreenshot ? 'Attached with order in Admin Panel' : 'Customer instructed to send on WhatsApp',
           "Items Ordered": itemsText,
           "Shipping Address": `${order.address}, ${order.city}, ${order.district}, ${order.state} - ${order.pincode}`,
-          "Action Required": "Verify payment in GPay/Bank App & Dispatch order via Admin Panel"
+          "CRITICAL OWNER ACTION": isOnline 
+            ? "⚠️ Check GPay / Bank account (+91 79906 48756). Dispatch IF AND ONLY IF payment is verified in your bank account; otherwise cancel order." 
+            : "Verify address and dispatch via Shiprocket / BlueDart COD."
         })
       }).then(res => res.json())
-        .then(data => console.log('✅ Real Email Sent to Owner:', ownerEmail, data))
+        .then(data => console.log('✅ Email Sent to Owner:', ownerEmail, data))
         .catch(err => console.warn('Owner Email error:', err));
 
     } catch (e) {

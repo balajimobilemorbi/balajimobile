@@ -125,46 +125,84 @@ export default function ProductsPage() {
         </div>
       </div>
 
-      {/* Quick Collection Tabs (New Arrivals, Trending, All) */}
-      <div className="flex items-center gap-3 overflow-x-auto pb-2 scrollbar-none font-mono text-xs">
-        <button
-          onClick={() => { setSearchQuery(''); setSelectedCategory('all'); setSortBy('featured'); }}
-          className={`px-5 py-2.5 rounded-2xl font-bold whitespace-nowrap transition-all ${
-            sortBy === 'featured' && selectedCategory === 'all'
-              ? 'bg-[#D4AF37] text-[#050505] shadow-[0_0_15px_rgba(212,175,55,0.4)]'
-              : 'bg-[#0D1117] text-[#B8BDC8] border border-white/[0.08] hover:text-[#F8F8F8]'
-          }`}
-        >
-          ✨ New Arrivals &amp; All Models
-        </button>
-        <button
-          onClick={() => { setSortBy('newest'); }}
-          className={`px-5 py-2.5 rounded-2xl font-bold whitespace-nowrap transition-all ${
-            sortBy === 'newest'
-              ? 'bg-[#0FAE72] text-[#050505] shadow-[0_0_15px_rgba(15,174,114,0.4)]'
-              : 'bg-[#0D1117] text-[#B8BDC8] border border-white/[0.08] hover:text-[#F8F8F8]'
-          }`}
-        >
-          ⚡ Latest Unboxed Arrivals
-        </button>
+      {/* Quick Collection Tabs & Mobile Horizontal Brand Chips */}
+      <div className="space-y-3">
+        <div className="flex items-center gap-3 overflow-x-auto pb-1 scrollbar-none font-mono text-xs -mx-4 px-4 sm:mx-0 sm:px-0">
+          <button
+            onClick={() => { setSearchQuery(''); setSelectedCategory('all'); setSortBy('featured'); }}
+            className={`px-4 sm:px-5 py-2.5 rounded-2xl font-bold whitespace-nowrap transition-all active:scale-95 shrink-0 ${
+              sortBy === 'featured' && selectedCategory === 'all'
+                ? 'bg-[#D4AF37] text-[#050505] shadow-[0_0_15px_rgba(212,175,55,0.4)]'
+                : 'bg-[#0D1117] text-[#B8BDC8] border border-white/[0.08] hover:text-[#F8F8F8]'
+            }`}
+          >
+            ✨ New Arrivals &amp; All Models
+          </button>
+          <button
+            onClick={() => { setSortBy('newest'); }}
+            className={`px-4 sm:px-5 py-2.5 rounded-2xl font-bold whitespace-nowrap transition-all active:scale-95 shrink-0 ${
+              sortBy === 'newest'
+                ? 'bg-[#0FAE72] text-[#050505] shadow-[0_0_15px_rgba(15,174,114,0.4)]'
+                : 'bg-[#0D1117] text-[#B8BDC8] border border-white/[0.08] hover:text-[#F8F8F8]'
+            }`}
+          >
+            ⚡ Latest Unboxed Arrivals
+          </button>
+        </div>
+
+        {/* 1-Tap Horizontal Brand Quick Filters */}
+        <div className="flex items-center gap-2 overflow-x-auto pb-2 scrollbar-none -mx-4 px-4 sm:mx-0 sm:px-0">
+          {['all', ...brands.map(b => b.name)].map((brandName) => {
+            const isSelected = selectedBrand.toLowerCase() === brandName.toLowerCase();
+            return (
+              <button
+                key={brandName}
+                onClick={() => setSelectedBrand(brandName === 'all' ? 'all' : brandName)}
+                className={`px-3.5 sm:px-4 py-1.5 sm:py-2 rounded-xl sm:rounded-2xl text-xs font-mono font-bold whitespace-nowrap transition-all duration-300 active:scale-95 shrink-0 ${
+                  isSelected
+                    ? 'bg-gradient-to-r from-[#0FAE72] to-[#0B8F5C] text-white shadow-[0_4px_15px_rgba(15,174,114,0.35)]'
+                    : 'bg-[#0D1117] text-[#B8BDC8] border border-white/[0.08] hover:border-[#D4AF37]/50 hover:text-[#F8F8F8]'
+                }`}
+              >
+                {brandName === 'all' ? 'All Brands' : brandName}
+              </button>
+            );
+          })}
+        </div>
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-4 gap-8">
         
-        {/* Sidebar Filters */}
-        <aside className={`lg:block ${mobileFilterOpen ? 'block' : 'hidden'} space-y-6 bg-[#0D1117] p-7 rounded-[28px] border border-white/[0.08] h-fit shadow-[0_20px_50px_rgba(0,0,0,0.8)]`}>
-          <div className="flex items-center justify-between pb-4 border-b border-white/[0.08]">
-            <h3 className="font-display font-bold text-[#F8F8F8] flex items-center gap-2 text-base">
-              <SlidersHorizontal className="w-4 h-4 text-[#D4AF37]" />
-              <span>Catalog Filters</span>
-            </h3>
-            <button
-              onClick={handleResetFilters}
-              className="text-xs text-[#B8BDC8] hover:text-[#D4AF37] flex items-center gap-1 font-mono transition"
-            >
-              <RefreshCcw className="w-3 h-3" /> Reset
-            </button>
-          </div>
+        {/* Sidebar Filters / Mobile Bottom Sheet Drawer */}
+        <aside className={`
+          ${mobileFilterOpen 
+            ? 'fixed inset-0 z-50 bg-[#050505]/85 backdrop-blur-[20px] flex items-end justify-center p-0 lg:p-0' 
+            : 'hidden lg:block'
+          }
+        `}>
+          <div className={`
+            space-y-6 bg-[#0D1117] p-6 sm:p-7 rounded-t-[32px] lg:rounded-[28px] border border-white/[0.1] shadow-[0_20px_50px_rgba(0,0,0,0.9)] w-full max-h-[85vh] lg:max-h-none overflow-y-auto
+          `}>
+            <div className="flex items-center justify-between pb-4 border-b border-white/[0.08]">
+              <h3 className="font-display font-bold text-[#F8F8F8] flex items-center gap-2 text-base">
+                <SlidersHorizontal className="w-4 h-4 text-[#D4AF37]" />
+                <span>Catalog Filters</span>
+              </h3>
+              <div className="flex items-center gap-3">
+                <button
+                  onClick={handleResetFilters}
+                  className="text-xs text-[#B8BDC8] hover:text-[#D4AF37] flex items-center gap-1 font-mono transition"
+                >
+                  <RefreshCcw className="w-3 h-3" /> Reset
+                </button>
+                <button
+                  onClick={() => setMobileFilterOpen(false)}
+                  className="lg:hidden text-xs text-[#E7C76A] font-bold font-mono px-3 py-1 rounded-xl bg-white/[0.06]"
+                >
+                  Done
+                </button>
+              </div>
+            </div>
 
           {/* Search Box */}
           <div className="space-y-2">
@@ -253,6 +291,7 @@ export default function ProductsPage() {
             />
           </div>
 
+          </div>
         </aside>
 
         {/* Product Catalog Grid */}

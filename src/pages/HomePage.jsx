@@ -4,6 +4,7 @@ import {
   Sparkles, Zap, ShieldCheck, Award, Truck, ChevronRight, 
   ArrowRight, RotateCw, Star, Layers, Recycle, CheckCircle2
 } from 'lucide-react';
+import { motion } from 'framer-motion';
 import ProductCard from '../components/common/ProductCard';
 import { storeCMS } from '../services/storeCMS';
 
@@ -95,7 +96,12 @@ export default function HomePage() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10 w-full grid grid-cols-1 lg:grid-cols-12 gap-12 items-center">
 
           {/* Hero Left Content */}
-          <div className="lg:col-span-7 space-y-8 text-center lg:text-left">
+          <motion.div 
+            initial={{ opacity: 0, x: -30 }}
+            animate={{ opacity: 1, x: 0 }}
+            transition={{ duration: 0.8, ease: [0.16, 1, 0.3, 1] }}
+            className="lg:col-span-7 space-y-8 text-center lg:text-left"
+          >
 
             {/* Tagline Pill */}
             <div className="inline-flex items-center gap-2.5 px-4 py-2 rounded-full text-xs font-mono bg-white/[0.04] border border-[#D4AF37]/40 backdrop-blur-xl shadow-[0_0_20px_rgba(212,175,55,0.15)]">
@@ -107,11 +113,11 @@ export default function HomePage() {
 
             {/* Main Headline */}
             <h1 className="font-display font-black text-4xl sm:text-6xl lg:text-7xl tracking-tight leading-[1.08] text-[#F8F8F8]">
-              {banner?.title || 'The Apex of Flagship Innovation.'}
+              {banner?.title || 'New & Pre-Owned Smartphones'}
             </h1>
 
             <p className="text-base sm:text-xl max-w-2xl font-sans text-[#B8BDC8] leading-relaxed">
-              {banner?.subtitle || 'Experience 100% genuine sealed flagship smartphones with 360° product inspection, brand warranty, and white-glove doorstep delivery.'}
+              {banner?.subtitle || 'Genuine sealed smartphones with brand warranty, 360° product view, and fast delivery across India. Visit our Morbi showroom or shop online.'}
             </p>
 
             {/* CTAs */}
@@ -135,11 +141,11 @@ export default function HomePage() {
 
             {/* Trust Badges */}
             <div className="pt-6 flex flex-wrap items-center justify-center lg:justify-start gap-6 text-xs font-mono text-[#B8BDC8]">
-              <span className="flex items-center gap-2"><ShieldCheck className="w-4 h-4 text-[#0FAE72]" /> 100% Sealed Box</span>
-              <span className="flex items-center gap-2"><Award className="w-4 h-4 text-[#D4AF37]" /> Official Warranty</span>
-              <span className="flex items-center gap-2"><Truck className="w-4 h-4 text-[#0FAE72]" /> Insured Express Delivery</span>
+              <span className="flex items-center gap-2"><ShieldCheck className="w-4 h-4 text-[#0FAE72]" /> 100% Genuine</span>
+              <span className="flex items-center gap-2"><Award className="w-4 h-4 text-[#D4AF37]" /> Brand Warranty</span>
+              <span className="flex items-center gap-2"><Truck className="w-4 h-4 text-[#0FAE72]" /> Fast Delivery</span>
             </div>
-          </div>
+          </motion.div>
 
           {/* Hero Phone Showcase Card with Parallax */}
           <div className="lg:col-span-5 relative flex justify-center">
@@ -150,7 +156,7 @@ export default function HomePage() {
               }}
             >
               <div className="absolute top-5 right-5 inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold font-mono bg-[#D4AF37]/20 text-[#E7C76A] border border-[#D4AF37]/40 backdrop-blur-md">
-                FLAGSHIP TITAN
+                NEW ARRIVAL
               </div>
 
               <div className="w-full h-64 sm:h-72 my-4 flex items-center justify-center overflow-hidden relative">
@@ -170,7 +176,7 @@ export default function HomePage() {
                   to="/product/bm-prod-101"
                   className="px-5 py-2.5 rounded-xl font-bold text-xs bg-gradient-to-r from-[#0FAE72] to-[#0B8F5C] hover:from-[#D4AF37] hover:to-[#E7C76A] hover:text-[#050505] text-white transition-all shadow-md shrink-0"
                 >
-                  Acquire
+                  View Details
                 </Link>
               </div>
             </div>
@@ -185,21 +191,21 @@ export default function HomePage() {
         <div className="grid grid-cols-2 md:grid-cols-4 gap-6 p-8 rounded-[28px] bg-[#0D1117] border border-white/[0.08] text-center font-mono shadow-[0_20px_50px_rgba(0,0,0,0.8)]">
           <div>
             <h3 className="font-display font-black text-3xl sm:text-4xl text-gradient-emerald">
-              50,000+
+              5,000+
             </h3>
-            <p className="text-xs mt-2 text-[#B8BDC8]">Smartphones Delivered</p>
+            <p className="text-xs mt-2 text-[#B8BDC8]">Happy Customers</p>
           </div>
           <div>
             <h3 className="font-display font-black text-3xl sm:text-4xl text-gradient-gold">
               4.9 ★
             </h3>
-            <p className="text-xs mt-2 text-[#B8BDC8]">Client Rating</p>
+            <p className="text-xs mt-2 text-[#B8BDC8]">Customer Rating</p>
           </div>
           <div>
             <h3 className="font-display font-black text-3xl sm:text-4xl text-[#0FAE72]">
               100%
             </h3>
-            <p className="text-xs mt-2 text-[#B8BDC8]">Sealed Guarantee</p>
+            <p className="text-xs mt-2 text-[#B8BDC8]">Genuine Products</p>
           </div>
           <div>
             <h3 className="font-display font-black text-3xl sm:text-4xl text-[#F8F8F8]">
@@ -223,8 +229,8 @@ export default function HomePage() {
                   <Sparkles className="w-6 h-6" />
                 </div>
                 <div>
-                  <h2 className="font-display font-black text-2xl sm:text-3xl text-[#F8F8F8]">BM NEW ARRIVALS</h2>
-                  <p className="text-xs font-mono text-[#B8BDC8] mt-1">Just Unboxed at Morbi Showroom</p>
+                  <h2 className="font-display font-black text-2xl sm:text-3xl text-[#F8F8F8]">New Arrivals</h2>
+                  <p className="text-xs font-mono text-[#B8BDC8] mt-1">Just landed in our store</p>
                 </div>
               </div>
 
@@ -241,7 +247,7 @@ export default function HomePage() {
               </div>
             </div>
 
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 pt-8">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 pt-8">
               {newArrivalProds.map(p => <ProductCard key={p.id} product={p} />)}
             </div>
           </div>
@@ -261,8 +267,8 @@ export default function HomePage() {
                   <Zap className="w-6 h-6 fill-current" />
                 </div>
                 <div>
-                  <h2 className="font-display font-black text-2xl sm:text-3xl text-[#F8F8F8]">BM FLASH SALE DEALS</h2>
-                  <p className="text-xs font-mono text-[#B8BDC8] mt-1">Lowest India Prices on Flagships</p>
+                  <h2 className="font-display font-black text-2xl sm:text-3xl text-[#F8F8F8]">Flash Deals</h2>
+                  <p className="text-xs font-mono text-[#B8BDC8] mt-1">Limited time offers — grab before they're gone</p>
                 </div>
               </div>
 
@@ -279,7 +285,7 @@ export default function HomePage() {
               </div>
             </div>
 
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 pt-8">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 pt-8">
               {flashSaleProds.map(p => <ProductCard key={p.id} product={p} />)}
             </div>
           </div>
@@ -292,25 +298,24 @@ export default function HomePage() {
       <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-8">
         <div className="flex items-end justify-between">
           <div>
-            <span className="text-xs font-mono uppercase tracking-[0.25em] font-bold text-[#D4AF37]">CURATED SELECTIONS</span>
-            <h2 className="font-display font-black text-3xl sm:text-4xl text-[#F8F8F8] mt-1">Shop by Category</h2>
+            <h2 className="font-display font-black text-3xl sm:text-4xl text-[#F8F8F8]">Shop by Category</h2>
           </div>
           <Link to="/products" className="text-xs font-mono hover:underline flex items-center gap-1 text-[#0FAE72]">
             <span>View All Categories</span><ChevronRight className="w-4 h-4" />
           </Link>
         </div>
 
-        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-5">
+        <div className="flex sm:grid sm:grid-cols-3 lg:grid-cols-6 gap-3.5 sm:gap-5 overflow-x-auto sm:overflow-x-visible pb-3 sm:pb-0 scrollbar-none snap-x snap-mandatory -mx-4 px-4 sm:mx-0 sm:px-0">
           {categories.map(cat => (
             <Link key={cat.id} to={`/products?category=${cat.slug}`}
-              className="group p-6 rounded-[28px] bg-white/[0.04] backdrop-blur-[20px] border border-white/[0.08] hover:border-[#D4AF37]/50 text-center transition-all duration-500 ease-[cubic-bezier(0.16,1,0.3,1)] flex flex-col items-center justify-center space-y-4 hover:-translate-y-2 hover:shadow-[0_20px_40px_rgba(0,0,0,0.8)]"
+              className="group p-5 sm:p-6 rounded-[24px] sm:rounded-[28px] bg-white/[0.04] backdrop-blur-[20px] border border-white/[0.08] hover:border-[#D4AF37]/50 text-center transition-all duration-500 ease-[cubic-bezier(0.16,1,0.3,1)] flex flex-col items-center justify-center space-y-3 sm:space-y-4 hover:-translate-y-2 hover:shadow-[0_20px_40px_rgba(0,0,0,0.8)] min-w-[130px] sm:min-w-0 snap-start shrink-0 sm:shrink"
             >
-              <div className="w-16 h-16 rounded-2xl p-2.5 flex items-center justify-center bg-white/[0.05] border border-white/[0.1] group-hover:scale-110 group-hover:border-[#D4AF37]/50 transition-all duration-500">
+              <div className="w-14 h-14 sm:w-16 sm:h-16 rounded-2xl p-2 sm:p-2.5 flex items-center justify-center bg-white/[0.05] border border-white/[0.1] group-hover:scale-110 group-hover:border-[#D4AF37]/50 transition-all duration-500">
                 <img src={cat.image} alt={cat.name} className="w-full h-full object-contain rounded-xl" />
               </div>
               <div>
-                <h4 className="font-display font-bold text-sm text-[#F8F8F8] group-hover:text-[#D4AF37] transition-colors">{cat.name}</h4>
-                <p className="text-[11px] font-mono text-[#B8BDC8] mt-1">{cat.count} Models</p>
+                <h4 className="font-display font-bold text-xs sm:text-sm text-[#F8F8F8] group-hover:text-[#D4AF37] transition-colors line-clamp-1">{cat.name}</h4>
+                <p className="text-[10px] sm:text-[11px] font-mono text-[#B8BDC8] mt-0.5">{cat.count} Models</p>
               </div>
             </Link>
           ))}
@@ -323,14 +328,13 @@ export default function HomePage() {
       <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-8">
         <div className="flex items-end justify-between">
           <div>
-            <span className="text-xs font-mono uppercase tracking-[0.25em] font-bold text-[#0FAE72]">BALAJI SHOWROOM SELECTION</span>
-            <h2 className="font-display font-black text-3xl sm:text-4xl text-[#F8F8F8] mt-1">Trending Flagships</h2>
+            <h2 className="font-display font-black text-3xl sm:text-4xl text-[#F8F8F8]">Popular Phones</h2>
           </div>
           <Link to="/products" className="text-xs font-mono hover:underline flex items-center gap-1 text-[#D4AF37]">
-            <span>Explore All Phones</span><ChevronRight className="w-4 h-4" />
+            <span>View All</span><ChevronRight className="w-4 h-4" />
           </Link>
         </div>
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
           {trendingProds.slice(0,8).map(p => <ProductCard key={p.id} product={p} />)}
         </div>
       </section>
@@ -340,33 +344,28 @@ export default function HomePage() {
       {/* ══════════════════════════════════════════════════════ */}
       {secondHandProducts.length > 0 && (
         <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="rounded-[32px] bg-[#0D1117] border border-white/[0.08] relative overflow-hidden p-8 sm:p-10 shadow-[0_25px_60px_rgba(0,0,0,0.9)]">
-            <div className="flex flex-col md:flex-row items-center justify-between gap-6 pb-8 border-b border-white/[0.08]">
-              <div className="flex items-center gap-4">
-                <div className="p-3.5 rounded-2xl bg-white/[0.05] border border-[#D4AF37]/40 text-[#D4AF37]">
-                  <Recycle className="w-6 h-6" />
+          <div className="rounded-[32px] bg-[#0D1117] border border-white/[0.08] relative overflow-hidden p-6 sm:p-10 shadow-[0_25px_60px_rgba(0,0,0,0.9)]">
+            <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4 sm:gap-6 pb-6 sm:pb-8 border-b border-white/[0.08]">
+              <div className="flex items-center gap-3.5">
+                <div className="p-3 rounded-2xl bg-white/[0.05] border border-[#D4AF37]/40 text-[#D4AF37]">
+                  <Recycle className="w-5 h-5 sm:w-6 sm:h-6" />
                 </div>
                 <div>
-                  <h2 className="font-display font-black text-2xl sm:text-3xl text-[#F8F8F8]">CERTIFIED PRE-OWNED SMARTPHONES</h2>
-                  <p className="text-xs font-mono text-[#B8BDC8] mt-1">Rigorously Tested — Balaji Mobile Shop Warranty</p>
+                  <h2 className="font-display font-black text-2xl sm:text-3xl text-[#F8F8F8]">Pre-Owned Phones</h2>
+                  <p className="text-xs font-mono text-[#B8BDC8] mt-0.5">Tested &amp; verified with shop warranty</p>
                 </div>
               </div>
               <Link to="/second-hand"
-                className="px-6 py-3.5 rounded-2xl font-bold text-sm transition-all duration-300 flex items-center gap-2 bg-gradient-to-r from-[#0FAE72] to-[#0B8F5C] hover:from-[#D4AF37] hover:to-[#E7C76A] hover:text-[#050505] text-white shadow-lg shrink-0"
+                className="w-full sm:w-auto text-center px-6 py-3 rounded-2xl font-bold text-xs sm:text-sm transition-all duration-300 flex items-center justify-center gap-2 bg-gradient-to-r from-[#0FAE72] to-[#0B8F5C] hover:from-[#D4AF37] hover:to-[#E7C76A] hover:text-[#050505] text-white shadow-lg shrink-0"
               >
                 <span>View All Pre-Owned</span>
                 <ArrowRight className="w-4 h-4" />
               </Link>
             </div>
 
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 pt-8">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 pt-6 sm:pt-8">
               {secondHandProducts.slice(0,3).map(p => (
-                <div key={p.id} className="relative">
-                  <div className="absolute top-4 left-4 z-10 inline-flex items-center gap-1 px-3 py-1 rounded-full text-[#050505] text-[10px] font-bold font-mono bg-[#D4AF37] shadow-lg">
-                    <Recycle className="w-3 h-3" /> CERTIFIED PRE-OWNED
-                  </div>
-                  <ProductCard product={p} />
-                </div>
+                <ProductCard key={p.id} product={p} />
               ))}
             </div>
           </div>
@@ -376,18 +375,17 @@ export default function HomePage() {
       {/* ══════════════════════════════════════════════════════ */}
       {/* 8. AUTHORIZED BRANDS                                   */}
       {/* ══════════════════════════════════════════════════════ */}
-      <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-8">
+      <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-6 sm:space-y-8">
         <div className="text-center">
-          <span className="text-xs font-mono uppercase tracking-[0.25em] font-bold text-[#B8BDC8]">AUTHORISED DISTRIBUTOR</span>
-          <h2 className="font-display font-bold text-2xl sm:text-3xl text-[#F8F8F8] mt-1">Official Flagship Brand Partners</h2>
+          <h2 className="font-display font-bold text-2xl sm:text-3xl text-[#F8F8F8]">Brands We Sell</h2>
         </div>
-        <div className="grid grid-cols-3 sm:grid-cols-4 lg:grid-cols-7 gap-4">
-          {brands.map(brand => (
+        <div className="flex sm:grid sm:grid-cols-4 lg:grid-cols-7 gap-3 sm:gap-4 overflow-x-auto sm:overflow-x-visible pb-3 sm:pb-0 scrollbar-none -mx-4 px-4 sm:mx-0 sm:px-0">
+          {brands.filter(b => b.count > 0).map(brand => (
             <Link key={brand.id} to={`/products?brand=${brand.name}`}
-              className="p-4 rounded-2xl bg-white/[0.04] border border-white/[0.08] hover:border-[#D4AF37]/50 text-center transition-all duration-300 flex flex-col items-center justify-center space-y-1.5 hover:-translate-y-1"
+              className="p-3.5 sm:p-4 rounded-2xl bg-white/[0.04] border border-white/[0.08] hover:border-[#D4AF37]/50 text-center transition-all duration-300 flex flex-col items-center justify-center space-y-1 hover:-translate-y-1 min-w-[95px] sm:min-w-0 shrink-0 sm:shrink"
             >
-              <span className="text-sm font-mono font-bold text-[#F8F8F8]">{brand.name}</span>
-              <span className="text-[10px] font-mono text-[#B8BDC8]">{brand.count} models</span>
+              <span className="text-xs sm:text-sm font-mono font-bold text-[#F8F8F8]">{brand.name}</span>
+              <span className="text-[9.5px] sm:text-[10px] font-mono text-[#B8BDC8]">{brand.count} models</span>
             </Link>
           ))}
         </div>
@@ -399,14 +397,14 @@ export default function HomePage() {
       <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="p-10 sm:p-12 rounded-[32px] bg-[#0D1117] border border-white/[0.08] space-y-10 shadow-[0_25px_60px_rgba(0,0,0,0.9)]">
           <div className="text-center space-y-2">
-            <span className="text-xs font-mono uppercase tracking-[0.25em] font-bold text-[#D4AF37]">THE SHOWROOM STANDARD</span>
-            <h2 className="font-display font-black text-3xl sm:text-4xl text-[#F8F8F8]">Why Clients Trust Balaji Mobile</h2>
+            <span className="text-xs font-mono uppercase tracking-[0.25em] font-bold text-[#D4AF37]">OUR PROMISE</span>
+            <h2 className="font-display font-black text-3xl sm:text-4xl text-[#F8F8F8]">Why Choose Balaji Mobile</h2>
           </div>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
             {[
-              { icon: <ShieldCheck className="w-6 h-6 text-[#D4AF37]" />, title:'100% Sealed Factory Devices', desc:'Every smartphone is directly sourced from official brand channels with authentic Indian GST tax invoice.' },
-              { icon: <RotateCw className="w-6 h-6 text-[#D4AF37]" />, title:'Instant Exchange Evaluation', desc:'Trade in your existing smartphone with instantaneous lounge valuation and upfront checkout bonus.' },
-              { icon: <Truck className="w-6 h-6 text-[#D4AF37]" />, title:'Insured Doorstep Courier', desc:'Fully tracked, tamper-proof insured express delivery powered by BlueDart & Delhivery across 26,000+ PIN codes.' },
+              { icon: <ShieldCheck className="w-6 h-6 text-[#D4AF37]" />, title:'100% Genuine Products', desc:'Every phone is sourced from official brand channels with GST bill and manufacturer warranty.' },
+              { icon: <RotateCw className="w-6 h-6 text-[#D4AF37]" />, title:'Easy Exchange', desc:'Trade in your old phone at our Morbi store. Get instant valuation and exchange bonus on new purchase.' },
+              { icon: <Truck className="w-6 h-6 text-[#D4AF37]" />, title:'Safe Home Delivery', desc:'Insured express delivery via BlueDart & Delhivery. Tracked and tamper-proof packaging across India.' },
             ].map((item, i) => (
               <div key={i} className="space-y-4 p-7 rounded-[24px] bg-white/[0.03] border border-white/[0.08] hover:border-[#D4AF37]/40 transition-all duration-300">
                 <div className="w-12 h-12 rounded-2xl flex items-center justify-center bg-white/[0.05] border border-[#D4AF37]/30">
@@ -425,8 +423,8 @@ export default function HomePage() {
       {/* ══════════════════════════════════════════════════════ */}
       <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-8">
         <div className="text-center space-y-2">
-          <span className="text-xs font-mono uppercase tracking-[0.25em] font-bold text-[#0FAE72]">VERIFIED TESTIMONIALS</span>
-          <h2 className="font-display font-black text-3xl sm:text-4xl text-[#F8F8F8]">Client Endorsements</h2>
+          <span className="text-xs font-mono uppercase tracking-[0.25em] font-bold text-[#0FAE72]">CUSTOMER REVIEWS</span>
+          <h2 className="font-display font-black text-3xl sm:text-4xl text-[#F8F8F8]">What Our Customers Say</h2>
         </div>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           {testimonials.map(t => (
@@ -446,7 +444,7 @@ export default function HomePage() {
               </div>
               <p className="text-xs leading-relaxed italic text-[#B8BDC8] font-sans">"{t.comment}"</p>
               <div className="pt-3 text-[11px] font-mono font-bold text-[#0FAE72] border-t border-white/[0.08]">
-                Acquired: {t.productBought}
+                Purchased: {t.productBought}
               </div>
             </div>
           ))}
