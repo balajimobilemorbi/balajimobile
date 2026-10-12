@@ -80,9 +80,10 @@ export default {
         },
       },
       fontFamily: {
-        sans:    ['Inter', '-apple-system', 'BlinkMacSystemFont', 'Segoe UI', 'Roboto', 'sans-serif'],
-        display: ['Satoshi', 'General Sans', 'Inter', 'sans-serif'],
-        mono:    ['JetBrains Mono', 'monospace'],
+        sans:    ['"Valley Sans"', '-apple-system', 'BlinkMacSystemFont', 'Segoe UI', 'Roboto', 'sans-serif'],
+        display: ['"Valley Sans"', '-apple-system', 'BlinkMacSystemFont', 'Segoe UI', 'Roboto', 'sans-serif'],
+        mono:    ['"Valley Sans"', 'monospace'],
+        serif:   ['"Valley Sans"', 'sans-serif'],
       },
       boxShadow: {
         'glow-gold':    '0 0 30px rgba(212, 175, 55, 0.35)',

@@ -1,7 +1,7 @@
 export const INITIAL_PRODUCTS = [
   {
     id: "bm-prod-101",
-    title: "iPhone 15 Pro Max - Natural Titanium",
+    title: "iPhone 15 Pro Max",
     brand: "Apple",
     model: "A3106",
     ram: "8GB",
@@ -13,6 +13,8 @@ export const INITIAL_PRODUCTS = [
     battery: "4,422 mAh with 20W Fast Charging & MagSafe",
     condition: "Brand New Sealed Box - 100% Battery Health - 1 Year Official Apple Warranty",
     warranty: "1 Year Official Apple India Warranty",
+    deliveryInfo: "White-Glove Insured Express Delivery across India (1-3 Days)",
+    replacementInfo: "7 Days Free Replacement for Any Manufacturing Defect",
     imei: "359482109847192",
     description: "Forged in titanium and featuring the groundbreaking A17 Pro chip, a customizable Action button, and the most powerful iPhone camera system ever.",
     features: [
@@ -22,11 +24,12 @@ export const INITIAL_PRODUCTS = [
       "USB-C connector with USB 3 speeds (up to 10Gbps)"
     ],
     specs: {
-      "Dimensions": "159.9 x 76.7 x 8.25 mm",
-      "Weight": "221 grams",
-      "OS": "iOS 17 (Upgradable to iOS 18)",
-      "SIM": "Dual SIM (Nano + eSIM)",
-      "Water Resistance": "IP68 Certified"
+      "Processor": "A17 Pro Chip (3nm)",
+      "Display": "6.7\" Super Retina XDR 120Hz",
+      "Camera": "48MP + 12MP + 12MP (5x Zoom)",
+      "Battery": "4,422 mAh Fast Charging",
+      "OS": "iOS 18 Ready",
+      "Weight": "221g Titanium Frame"
     },
     accessories: ["USB-C Woven Charge Cable (1m)", "SIM Ejector Tool", "Documentation"],
     stock: 14,
@@ -40,6 +43,53 @@ export const INITIAL_PRODUCTS = [
     isNewArrival: false,
     isFlashSale: true,
     dealEndsAt: new Date(Date.now() + 86400000 * 3).toISOString(),
+    colors: [
+      {
+        id: "col-101-1",
+        name: "Natural Titanium",
+        hex: "#878681",
+        images: [
+          "https://images.unsplash.com/photo-1695048133142-1a20484d2569?q=80&w=1000&auto=format&fit=crop",
+          "https://images.unsplash.com/photo-1695048133021-d64e9a8f4c6e?q=80&w=1000&auto=format&fit=crop",
+          "https://images.unsplash.com/photo-1592750475338-74b7b21085ab?q=80&w=1000&auto=format&fit=crop"
+        ]
+      },
+      {
+        id: "col-101-2",
+        name: "Blue Titanium",
+        hex: "#2d3b4d",
+        images: [
+          "https://images.unsplash.com/photo-1591337676887-a217a6970a8a?q=80&w=1000&auto=format&fit=crop",
+          "https://images.unsplash.com/photo-1574944985070-8f3ebc6b79d2?q=80&w=1000&auto=format&fit=crop"
+        ]
+      },
+      {
+        id: "col-101-3",
+        name: "Black Titanium",
+        hex: "#1e1e1e",
+        images: [
+          "https://images.unsplash.com/photo-1510557880182-3d4d3cba35a5?q=80&w=1000&auto=format&fit=crop",
+          "https://images.unsplash.com/photo-1565849904461-04a58ad377e0?q=80&w=1000&auto=format&fit=crop"
+        ]
+      },
+      {
+        id: "col-101-4",
+        name: "White Titanium",
+        hex: "#e4e5e7",
+        images: [
+          "https://images.unsplash.com/photo-1530319067432-f2a729c03db5?q=80&w=1000&auto=format&fit=crop"
+        ]
+      }
+    ],
+    variants: [
+      { id: "var-101-1", color: "Natural Titanium", ram: "8GB", storage: "256GB", bmPrice: 129900, marketPrice: 149900, stock: 8 },
+      { id: "var-101-2", color: "Natural Titanium", ram: "8GB", storage: "512GB", bmPrice: 139900, marketPrice: 159900, stock: 14 },
+      { id: "var-101-3", color: "Natural Titanium", ram: "8GB", storage: "1TB", bmPrice: 159900, marketPrice: 179900, stock: 4 },
+      { id: "var-101-4", color: "Blue Titanium", ram: "8GB", storage: "256GB", bmPrice: 129900, marketPrice: 149900, stock: 6 },
+      { id: "var-101-5", color: "Black Titanium", ram: "8GB", storage: "512GB", bmPrice: 139900, marketPrice: 159900, stock: 10 }
+    ],
+    ramOptions: ["8GB"],
+    storageOptions: ["256GB", "512GB", "1TB"],
     images: [
       "https://images.unsplash.com/photo-1695048133142-1a20484d2569?q=80&w=1000&auto=format&fit=crop",
       "https://images.unsplash.com/photo-1695048133021-d64e9a8f4c6e?q=80&w=1000&auto=format&fit=crop",
@@ -54,7 +104,7 @@ export const INITIAL_PRODUCTS = [
   },
   {
     id: "bm-prod-102",
-    title: "Samsung Galaxy S24 Ultra 5G - Titanium Black",
+    title: "Samsung Galaxy S24 Ultra 5G",
     brand: "Samsung",
     model: "SM-S928B",
     ram: "12GB",
@@ -66,6 +116,8 @@ export const INITIAL_PRODUCTS = [
     battery: "5,000 mAh with 45W Super Fast Charging",
     condition: "Brand New Sealed Box - 1 Year Official Samsung Warranty",
     warranty: "1 Year Official Samsung India Warranty",
+    deliveryInfo: "White-Glove Insured Express Delivery across India (1-3 Days)",
+    replacementInfo: "7 Days Replacement Guarantee on Manufacturing Defects",
     imei: "354921094829103",
     description: "Welcome to the era of mobile AI. Galaxy AI arrives on S24 Ultra with Circle to Search, Live Translate, Note Assist, and 200MP Quad Tele System.",
     features: [
@@ -75,11 +127,12 @@ export const INITIAL_PRODUCTS = [
       "Titanium frame construction"
     ],
     specs: {
-      "Dimensions": "162.3 x 79.0 x 8.6 mm",
-      "Weight": "232 grams",
-      "OS": "One UI 6.1 (Android 14)",
-      "SIM": "Dual SIM (Nano + eSIM)",
-      "Water Resistance": "IP68 Certified"
+      "Processor": "Snapdragon 8 Gen 3 (4nm)",
+      "Display": "6.8\" Dynamic AMOLED 2X 120Hz",
+      "Camera": "200MP + 50MP + 10MP + 12MP",
+      "Battery": "5,000 mAh with 45W Charging",
+      "Stylus": "Integrated S-Pen",
+      "Weight": "232g Titanium Body"
     },
     accessories: ["USB-C to C Data Cable", "S Pen Built-in", "SIM Ejector"],
     stock: 8,
@@ -93,6 +146,49 @@ export const INITIAL_PRODUCTS = [
     isNewArrival: true,
     isFlashSale: false,
     dealEndsAt: null,
+    colors: [
+      {
+        id: "col-102-1",
+        name: "Titanium Black",
+        hex: "#232323",
+        images: [
+          "https://images.unsplash.com/photo-1610945265064-0e34e5519bbf?q=80&w=1000&auto=format&fit=crop",
+          "https://images.unsplash.com/photo-1580910051074-3eb694886505?q=80&w=1000&auto=format&fit=crop"
+        ]
+      },
+      {
+        id: "col-102-2",
+        name: "Titanium Gray",
+        hex: "#787679",
+        images: [
+          "https://images.unsplash.com/photo-1546054454-aa26e2b734c7?q=80&w=1000&auto=format&fit=crop",
+          "https://images.unsplash.com/photo-1511707171634-5f897ff02aa9?q=80&w=1000&auto=format&fit=crop"
+        ]
+      },
+      {
+        id: "col-102-3",
+        name: "Titanium Violet",
+        hex: "#504b68",
+        images: [
+          "https://images.unsplash.com/photo-1565849904461-04a58ad377e0?q=80&w=1000&auto=format&fit=crop"
+        ]
+      },
+      {
+        id: "col-102-4",
+        name: "Titanium Yellow",
+        hex: "#e0d39e",
+        images: [
+          "https://images.unsplash.com/photo-1510557880182-3d4d3cba35a5?q=80&w=1000&auto=format&fit=crop"
+        ]
+      }
+    ],
+    variants: [
+      { id: "var-102-1", color: "Titanium Black", ram: "12GB", storage: "256GB", bmPrice: 112999, marketPrice: 129999, stock: 5 },
+      { id: "var-102-2", color: "Titanium Black", ram: "12GB", storage: "512GB", bmPrice: 122999, marketPrice: 139999, stock: 8 },
+      { id: "var-102-3", color: "Titanium Gray", ram: "12GB", storage: "512GB", bmPrice: 122999, marketPrice: 139999, stock: 6 }
+    ],
+    ramOptions: ["12GB"],
+    storageOptions: ["256GB", "512GB", "1TB"],
     images: [
       "https://images.unsplash.com/photo-1610945265064-0e34e5519bbf?q=80&w=1000&auto=format&fit=crop",
       "https://images.unsplash.com/photo-1580910051074-3eb694886505?q=80&w=1000&auto=format&fit=crop"
@@ -104,7 +200,7 @@ export const INITIAL_PRODUCTS = [
   },
   {
     id: "bm-prod-103",
-    title: "OnePlus 12 5G - Silky Black",
+    title: "OnePlus 12 5G",
     brand: "OnePlus",
     model: "CPH2573",
     ram: "16GB",
@@ -116,6 +212,8 @@ export const INITIAL_PRODUCTS = [
     battery: "5,400 mAh with 100W SUPERVOOC & 50W AIRVOOC Wireless",
     condition: "Brand New Sealed Box - 1 Year Official OnePlus Warranty",
     warranty: "1 Year Official OnePlus Warranty",
+    deliveryInfo: "Insured Express Delivery across India (1-3 Days)",
+    replacementInfo: "7 Days Replacement Guarantee on Manufacturing Defects",
     imei: "358102948102938",
     description: "Smooth Beyond Belief. Powered by Snapdragon 8 Gen 3, Dual Cryo-velocity VC cooling system, and Hasselblad 4th Gen Camera.",
     features: [
@@ -124,10 +222,11 @@ export const INITIAL_PRODUCTS = [
       "Alert Slider integrated"
     ],
     specs: {
-      "Dimensions": "164.3 x 75.8 x 9.15 mm",
-      "Weight": "220 grams",
-      "OS": "OxygenOS 14 (Android 14)",
-      "SIM": "Dual Nano SIM"
+      "Processor": "Snapdragon 8 Gen 3",
+      "Display": "6.82\" 2K ProXDR 120Hz",
+      "Camera": "50MP + 64MP Periscope + 48MP",
+      "Battery": "5,400 mAh 100W SUPERVOOC",
+      "OS": "OxygenOS 14"
     },
     accessories: ["100W SUPERVOOC Power Adapter", "Red Type-C Cable", "Protective Case"],
     stock: 22,
@@ -141,6 +240,32 @@ export const INITIAL_PRODUCTS = [
     isNewArrival: false,
     isFlashSale: true,
     dealEndsAt: new Date(Date.now() + 86400000 * 2).toISOString(),
+    colors: [
+      {
+        id: "col-103-1",
+        name: "Silky Black",
+        hex: "#1a1a1a",
+        images: [
+          "https://images.unsplash.com/photo-1565849904461-04a58ad377e0?q=80&w=1000&auto=format&fit=crop"
+        ]
+      },
+      {
+        id: "col-103-2",
+        name: "Flowy Emerald",
+        hex: "#2d594b",
+        images: [
+          "https://images.unsplash.com/photo-1592750475338-74b7b21085ab?q=80&w=1000&auto=format&fit=crop",
+          "https://images.unsplash.com/photo-1511707171634-5f897ff02aa9?q=80&w=1000&auto=format&fit=crop"
+        ]
+      }
+    ],
+    variants: [
+      { id: "var-103-1", color: "Silky Black", ram: "12GB", storage: "256GB", bmPrice: 56499, marketPrice: 64999, stock: 12 },
+      { id: "var-103-2", color: "Silky Black", ram: "16GB", storage: "512GB", bmPrice: 62499, marketPrice: 69999, stock: 10 },
+      { id: "var-103-3", color: "Flowy Emerald", ram: "16GB", storage: "512GB", bmPrice: 62499, marketPrice: 69999, stock: 8 }
+    ],
+    ramOptions: ["12GB", "16GB"],
+    storageOptions: ["256GB", "512GB"],
     images: [
       "https://images.unsplash.com/photo-1565849904461-04a58ad377e0?q=80&w=1000&auto=format&fit=crop"
     ],
@@ -155,7 +280,7 @@ export const INITIAL_PRODUCTS = [
 export const INITIAL_SECONDHAND_PRODUCTS = [
   {
     id: "bm-sh-201",
-    title: "iPhone 13 Pro - Sierra Blue (Certified Pre-Owned)",
+    title: "iPhone 13 Pro (Certified Pre-Owned)",
     brand: "Apple",
     model: "A2638",
     ram: "6GB",
@@ -173,6 +298,8 @@ export const INITIAL_SECONDHAND_PRODUCTS = [
     hasBox: "Yes - Original Box & Cable Included",
     condition: "Superb Condition - Flawless display & back glass - Battery Health 87% - All functions 100% verified",
     warranty: "3 Months Balaji Mobile Shop Warranty",
+    deliveryInfo: "Insured Express Delivery across India (1-3 Days)",
+    replacementInfo: "7 Days Testing Warranty & Replacement",
     imei: "352948109283746",
     description: "Certified Pre-Owned iPhone 13 Pro in superb condition. Thoroughly tested across 35 quality checkpoints by Balaji Mobile technicians. Complete peace of mind with shop warranty, bill & original box.",
     features: [
@@ -182,10 +309,9 @@ export const INITIAL_SECONDHAND_PRODUCTS = [
       "Comes with original box & GST bill"
     ],
     specs: {
-      "Dimensions": "146.7 x 71.5 x 7.65 mm",
-      "Weight": "204 grams",
-      "OS": "iOS 17",
-      "SIM": "Dual SIM (Nano + eSIM)",
+      "Processor": "A15 Bionic (5nm)",
+      "Display": "6.1\" Super Retina XDR 120Hz",
+      "Camera": "12MP Triple System",
       "Battery Health": "87%",
       "Device Age": "9 Months Old"
     },
@@ -197,19 +323,43 @@ export const INITIAL_SECONDHAND_PRODUCTS = [
     rating: 4.6,
     reviewsCount: 18,
     isFeatured: true,
+    isSecondHand: true,
+    colors: [
+      {
+        id: "col-201-1",
+        name: "Sierra Blue",
+        hex: "#8ea4b8",
+        images: [
+          "https://images.unsplash.com/photo-1632661674596-df8be86a1e44?q=80&w=1000&auto=format&fit=crop",
+          "https://images.unsplash.com/photo-1592750475338-74b7b21085ab?q=80&w=1000&auto=format&fit=crop"
+        ]
+      },
+      {
+        id: "col-201-2",
+        name: "Graphite",
+        hex: "#343332",
+        images: [
+          "https://images.unsplash.com/photo-1510557880182-3d4d3cba35a5?q=80&w=1000&auto=format&fit=crop"
+        ]
+      }
+    ],
+    variants: [
+      { id: "var-201-1", color: "Sierra Blue", ram: "6GB", storage: "256GB", bmPrice: 38999, marketPrice: 55000, stock: 2 }
+    ],
+    ramOptions: ["6GB"],
+    storageOptions: ["256GB"],
     images: [
       "https://images.unsplash.com/photo-1632661674596-df8be86a1e44?q=80&w=1000&auto=format&fit=crop",
       "https://images.unsplash.com/photo-1592750475338-74b7b21085ab?q=80&w=1000&auto=format&fit=crop"
     ],
     frames360: [
-      "https://images.unsplash.com/photo-1632661674596-df8be86a1e44?q=80&w=600&auto=format&fit=crop",
-      "https://images.unsplash.com/photo-1592750475338-74b7b21085ab?q=80&w=600&auto=format&fit=crop"
+      "https://images.unsplash.com/photo-1632661674596-df8be86a1e44?q=80&w=600&auto=format&fit=crop"
     ],
     videoUrl: ""
   },
   {
     id: "bm-sh-202",
-    title: "Samsung Galaxy S22 Ultra 5G - Burgundy (Certified Pre-Owned)",
+    title: "Samsung Galaxy S22 Ultra 5G (Certified Pre-Owned)",
     brand: "Samsung",
     model: "SM-S908B",
     ram: "12GB",
@@ -227,6 +377,8 @@ export const INITIAL_SECONDHAND_PRODUCTS = [
     hasBox: "Yes - Original Box & S-Pen Included",
     condition: "Like New Condition - S Pen working 100% - Display flawless - 91% Battery Health",
     warranty: "3 Months Balaji Mobile Shop Warranty",
+    deliveryInfo: "Insured Express Delivery across India (1-3 Days)",
+    replacementInfo: "7 Days Testing Warranty & Replacement",
     imei: "358291048572910",
     description: "Certified Pre-owned Galaxy S22 Ultra 5G with built-in S Pen. Fully tested and verified by Balaji Mobile technicians. Flagship performance at a fraction of brand-new price.",
     features: [
@@ -236,10 +388,9 @@ export const INITIAL_SECONDHAND_PRODUCTS = [
       "Comes with GST bill & Balaji Warranty"
     ],
     specs: {
-      "Dimensions": "163.3 x 77.9 x 8.9 mm",
-      "Weight": "229 grams",
-      "OS": "One UI 6.0 (Android 14)",
-      "SIM": "Dual SIM",
+      "Processor": "Snapdragon 8 Gen 1",
+      "Display": "6.8\" Dynamic AMOLED 2X 120Hz",
+      "Camera": "108MP + 10MP + 10MP + 12MP",
       "Battery Health": "91%",
       "Device Age": "1 Year Old"
     },
@@ -251,19 +402,43 @@ export const INITIAL_SECONDHAND_PRODUCTS = [
     rating: 4.8,
     reviewsCount: 14,
     isFeatured: true,
+    isSecondHand: true,
+    colors: [
+      {
+        id: "col-202-1",
+        name: "Burgundy",
+        hex: "#582b35",
+        images: [
+          "https://images.unsplash.com/photo-1610945265064-0e34e5519bbf?q=80&w=1000&auto=format&fit=crop",
+          "https://images.unsplash.com/photo-1580910051074-3eb694886505?q=80&w=1000&auto=format&fit=crop"
+        ]
+      },
+      {
+        id: "col-202-2",
+        name: "Phantom Black",
+        hex: "#222222",
+        images: [
+          "https://images.unsplash.com/photo-1546054454-aa26e2b734c7?q=80&w=1000&auto=format&fit=crop"
+        ]
+      }
+    ],
+    variants: [
+      { id: "var-202-1", color: "Burgundy", ram: "12GB", storage: "256GB", bmPrice: 29999, marketPrice: 45000, stock: 1 }
+    ],
+    ramOptions: ["12GB"],
+    storageOptions: ["256GB"],
     images: [
       "https://images.unsplash.com/photo-1610945265064-0e34e5519bbf?q=80&w=1000&auto=format&fit=crop",
       "https://images.unsplash.com/photo-1580910051074-3eb694886505?q=80&w=1000&auto=format&fit=crop"
     ],
     frames360: [
-      "https://images.unsplash.com/photo-1610945265064-0e34e5519bbf?q=80&w=600&auto=format&fit=crop",
-      "https://images.unsplash.com/photo-1580910051074-3eb694886505?q=80&w=600&auto=format&fit=crop"
+      "https://images.unsplash.com/photo-1610945265064-0e34e5519bbf?q=80&w=600&auto=format&fit=crop"
     ],
     videoUrl: ""
   },
   {
     id: "bm-sh-203",
-    title: "iPhone 14 Pro Max 256GB - Deep Purple (Certified Pre-Owned)",
+    title: "iPhone 14 Pro Max (Certified Pre-Owned)",
     brand: "Apple",
     model: "A2894",
     ram: "6GB",
@@ -281,6 +456,8 @@ export const INITIAL_SECONDHAND_PRODUCTS = [
     hasBox: "Yes - Original Box & Cable Included",
     condition: "Like New Condition - Flawless 100% scratchless screen & back glass - 92% Battery Health - FaceID & Dynamic Island perfect",
     warranty: "6 Months Apple Official Warranty + 3 Months Shop Warranty",
+    deliveryInfo: "Insured Express Delivery across India (1-3 Days)",
+    replacementInfo: "7 Days Testing Warranty & Replacement",
     imei: "359281048571920",
     description: "Certified Pre-Owned iPhone 14 Pro Max in Deep Purple. Tested across 35 quality checkpoints. Includes original Apple box, USB-C cable, original GST purchase invoice & Apple warranty.",
     features: [
@@ -290,10 +467,9 @@ export const INITIAL_SECONDHAND_PRODUCTS = [
       "Includes original GST bill & Apple box"
     ],
     specs: {
-      "Dimensions": "160.7 x 77.6 x 7.85 mm",
-      "Weight": "240 grams",
-      "OS": "iOS 17.5",
-      "SIM": "Dual SIM (Nano + eSIM)",
+      "Processor": "A16 Bionic (4nm)",
+      "Display": "6.7\" Super Retina XDR OLED 120Hz",
+      "Camera": "48MP + 12MP + 12MP",
       "Battery Health": "92%",
       "Device Age": "6 Months Old"
     },
@@ -305,13 +481,45 @@ export const INITIAL_SECONDHAND_PRODUCTS = [
     rating: 4.9,
     reviewsCount: 24,
     isFeatured: true,
+    isSecondHand: true,
+    colors: [
+      {
+        id: "col-203-1",
+        name: "Deep Purple",
+        hex: "#504456",
+        images: [
+          "https://images.unsplash.com/photo-1695048133142-1a20484d2569?q=80&w=1000&auto=format&fit=crop",
+          "https://images.unsplash.com/photo-1695048133021-d64e9a8f4c6e?q=80&w=1000&auto=format&fit=crop"
+        ]
+      },
+      {
+        id: "col-203-2",
+        name: "Space Black",
+        hex: "#222224",
+        images: [
+          "https://images.unsplash.com/photo-1510557880182-3d4d3cba35a5?q=80&w=1000&auto=format&fit=crop"
+        ]
+      },
+      {
+        id: "col-203-3",
+        name: "Gold",
+        hex: "#f4e8ce",
+        images: [
+          "https://images.unsplash.com/photo-1592750475338-74b7b21085ab?q=80&w=1000&auto=format&fit=crop"
+        ]
+      }
+    ],
+    variants: [
+      { id: "var-203-1", color: "Deep Purple", ram: "6GB", storage: "256GB", bmPrice: 79999, marketPrice: 119900, stock: 2 }
+    ],
+    ramOptions: ["6GB"],
+    storageOptions: ["256GB", "512GB"],
     images: [
       "https://images.unsplash.com/photo-1695048133142-1a20484d2569?q=80&w=1000&auto=format&fit=crop",
       "https://images.unsplash.com/photo-1695048133021-d64e9a8f4c6e?q=80&w=1000&auto=format&fit=crop"
     ],
     frames360: [
-      "https://images.unsplash.com/photo-1695048133142-1a20484d2569?q=80&w=600&auto=format&fit=crop",
-      "https://images.unsplash.com/photo-1695048133021-d64e9a8f4c6e?q=80&w=600&auto=format&fit=crop"
+      "https://images.unsplash.com/photo-1695048133142-1a20484d2569?q=80&w=600&auto=format&fit=crop"
     ],
     videoUrl: ""
   }
@@ -410,6 +618,20 @@ export const INITIAL_STORE_LOCATIONS = [
   }
 ];
 
+export const INITIAL_HERO_MEDIA = {
+  mediaType: "image", // "image" | "video"
+  mediaUrl: "https://images.unsplash.com/photo-1695048133142-1a20484d2569?q=80&w=1000&auto=format&fit=crop",
+  badgeText: "NEW ARRIVAL",
+  title: "iPhone 15 Pro Max",
+  subtitle: "Showroom Price: ₹1,39,900",
+  buttonText: "View Details",
+  buttonLink: "/product/bm-prod-101",
+  videoAutoplay: true,
+  videoLoop: true,
+  videoMuted: true,
+  videoControls: false
+};
+
 export const INITIAL_SETTINGS = {
   storeName: "Balaji Mobile",
   tagline: "Premium Smartphones | Best Deals | Trusted Store — Morbi, Gujarat",
@@ -430,5 +652,7 @@ export const INITIAL_SETTINGS = {
   flashDealEnabled: true,
   // Payment QR code - owner can update this
   paymentUpiId: "javiya36p36-1@oksbi",
-  paymentQrImageUrl: "/payment-qr.png"
+  paymentQrImageUrl: "/payment-qr.png",
+  // Hero Section Media Customization
+  heroMedia: INITIAL_HERO_MEDIA
 };

@@ -5,6 +5,7 @@ import Navbar from './components/layout/Navbar';
 import Footer from './components/layout/Footer';
 import MobileBottomNav from './components/layout/MobileBottomNav';
 import CustomCursor from './components/common/CustomCursor';
+import WelcomeOpeningAnimation from './components/common/WelcomeOpeningAnimation';
 import AISearchModal from './components/common/AISearchModal';
 import AIChatDrawer, { AIChatFloatingButton } from './components/common/AIChatDrawer';
 import WhatsAppFloatingButton from './components/common/WhatsAppFloatingButton';
@@ -140,6 +141,9 @@ export default function App() {
         
         {/* Custom Luxury Magnetic Cursor for Desktop */}
         <CustomCursor />
+
+        {/* Website Opening Welcome Animation */}
+        <WelcomeOpeningAnimation />
 
         {/* Realtime Live Store Sync Toast Banner */}
         {showLiveSyncToast && (

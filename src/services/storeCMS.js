@@ -8,7 +8,8 @@ import {
   INITIAL_BLOGS,
   INITIAL_TESTIMONIALS,
   INITIAL_STORE_LOCATIONS,
-  INITIAL_SETTINGS
+  INITIAL_SETTINGS,
+  INITIAL_HERO_MEDIA
 } from '../data/seedData';
 import { EMBEDDED_PAYMENT_QR, EMBEDDED_BM_LOGO } from '../assets/embeddedAssets';
 import { supabase, isSupabaseConfigured } from './supabaseClient';
@@ -19,6 +20,7 @@ const STORAGE_KEYS = {
   CATEGORIES: 'bm_categories_v5',
   BRANDS: 'bm_brands_v5',
   BANNERS: 'bm_banners_v5',
+  HERO_MEDIA: 'bm_hero_media_v5',
   COUPONS: 'bm_coupons_v5',
   BLOGS: 'bm_blogs_v5',
   TESTIMONIALS: 'bm_testimonials_v5',
@@ -156,15 +158,19 @@ export const storeCMS = {
     if (!Array.isArray(payload.products) && !payload.settings) return;
 
     const localTs = localStorage.getItem(STORAGE_KEYS.CLOUD_SYNC_TIMESTAMP) || '';
-    if (!localTs || (payload.updatedAt && payload.updatedAt !== localTs)) {
+    const localTime = localTs ? new Date(localTs).getTime() : 0;
+    const cloudTime = payload.updatedAt ? new Date(payload.updatedAt).getTime() : 0;
+
+    // Apply cloud payload only if incoming payload is newer or local is not yet initialized
+    if (!localTs || cloudTime >= localTime) {
       if (Array.isArray(payload.products) && payload.products.length > 0) {
-        const validProducts = payload.products.filter(p => p && p.id && p.title);
+        const validProducts = payload.products.map(storeCMS.normalizeProduct).filter(p => p && p.id && p.title);
         if (validProducts.length > 0) {
           localStorage.setItem(STORAGE_KEYS.PRODUCTS, JSON.stringify(validProducts));
         }
       }
       if (Array.isArray(payload.secondHandProducts)) {
-        const validSecondHand = payload.secondHandProducts.filter(p => p && p.id && p.title);
+        const validSecondHand = payload.secondHandProducts.map(storeCMS.normalizeProduct).filter(p => p && p.id && p.title);
         localStorage.setItem(STORAGE_KEYS.SECONDHAND, JSON.stringify(validSecondHand));
       }
       if (Array.isArray(payload.categories)) {
@@ -186,7 +192,8 @@ export const storeCMS = {
         localStorage.setItem(STORAGE_KEYS.LOCATIONS, JSON.stringify(payload.locations));
       }
       if (payload.settings && typeof payload.settings === 'object') {
-        localStorage.setItem(STORAGE_KEYS.SETTINGS, JSON.stringify(payload.settings));
+        const currentSettings = storeCMS.getSettings();
+        localStorage.setItem(STORAGE_KEYS.SETTINGS, JSON.stringify({ ...currentSettings, ...payload.settings }));
       }
       if (Array.isArray(payload.orders)) {
         localStorage.setItem(STORAGE_KEYS.ORDERS, JSON.stringify(payload.orders));
@@ -231,66 +238,25 @@ export const storeCMS = {
     if (isSyncingWithCloud) return true;
     isSyncingWithCloud = true;
     try {
-      const sanitizeProductList = (list) => {
-        if (!Array.isArray(list)) return [];
-        return list.map(p => {
-          if (!p || typeof p !== 'object') return null;
-          let safeImages = p.images;
-          if (Array.isArray(safeImages)) {
-            safeImages = safeImages.map(img => {
-              if (typeof img === 'string' && img.length > 2000) {
-                return 'https://images.unsplash.com/photo-1592750475338-74b7b21085ab?q=80&w=1000&auto=format&fit=crop';
-              }
-              return img;
-            });
-          }
-          return {
-            id: p.id,
-            title: p.title,
-            brand: p.brand,
-            ram: p.ram,
-            storage: p.storage,
-            color: p.color,
-            bmPrice: Number(p.bmPrice) || 0,
-            marketPrice: Number(p.marketPrice) || Number(p.bmPrice) || 0,
-            stock: typeof p.stock === 'number' ? p.stock : 10,
-            category: p.category || 'Flagship Titans',
-            condition: p.condition || '',
-            warranty: p.warranty || '',
-            rating: p.rating || 5.0,
-            reviewsCount: p.reviewsCount || 0,
-            isFeatured: !!p.isFeatured,
-            isTrending: !!p.isTrending,
-            isNewArrival: !!p.isNewArrival,
-            isFlashSale: !!p.isFlashSale,
-            isSecondHand: !!p.isSecondHand,
-            images: Array.isArray(safeImages) ? safeImages.slice(0, 3) : [],
-            variants: Array.isArray(p.variants) ? p.variants.slice(0, 5) : []
-          };
-        }).filter(Boolean);
-      };
+      const rawProducts = storeCMS.getProducts();
+      const rawSecondHand = storeCMS.getSecondHandProducts();
 
       const rawPayload = {
-        products: storeCMS.getProducts(),
-        secondHandProducts: storeCMS.getSecondHandProducts(),
+        products: rawProducts.map(storeCMS.normalizeProduct).filter(Boolean),
+        secondHandProducts: rawSecondHand.map(storeCMS.normalizeProduct).filter(Boolean),
         categories: storeCMS.getCategories(),
-        brands: (storeCMS.getBrands() || []).slice(0, 15),
+        brands: (storeCMS.getBrands() || []).slice(0, 30),
         banners: storeCMS.getBanners(),
         coupons: storeCMS.getCoupons(),
-        blogs: (storeCMS.getBlogs() || []).slice(0, 5),
+        blogs: (storeCMS.getBlogs() || []).slice(0, 10),
         locations: storeCMS.getLocations(),
         settings: storeCMS.getSettings(),
-        orders: (storeCMS.getAllOrders ? storeCMS.getAllOrders() : storeCMS.getOrders() || []).slice(0, 50),
+        orders: (storeCMS.getAllOrders ? storeCMS.getAllOrders() : storeCMS.getOrders() || []).slice(0, 100),
         registeredUsers: storeCMS.getRegisteredUsers ? storeCMS.getRegisteredUsers() : [],
         updatedAt: new Date().toISOString()
       };
 
-      const payload = {
-        ...rawPayload,
-        products: sanitizeProductList(rawPayload.products),
-        secondHandProducts: sanitizeProductList(rawPayload.secondHandProducts)
-      };
-      
+      const payload = rawPayload;
       localStorage.setItem(STORAGE_KEYS.CLOUD_SYNC_TIMESTAMP, payload.updatedAt);
       
       // 1. BroadcastChannel for same-device multi-tab
@@ -316,8 +282,11 @@ export const storeCMS = {
             updated_at: new Date().toISOString()
           }).then(({ error }) => {
             if (!error) console.log('✅ Store CMS saved to Supabase Postgres DB!');
+            else console.warn('Supabase store_data upsert error:', error);
           });
-        } catch (e) {}
+        } catch (e) {
+          console.warn('Supabase sync error:', e);
+        }
       }
 
       // 3. Push to Shared Public Cloud Relays
@@ -349,7 +318,7 @@ export const storeCMS = {
         if (newRelayUrl) successCount++;
       }
 
-      console.log('✅ Live Store CMS Pushed to Global Shared Cloud Relays!');
+      console.log('✅ Live Store CMS Pushed to Global Shared Cloud Relays & Supabase DB!');
       return true;
     } catch (e) {
       console.warn('Cloud sync push warning:', e);
@@ -440,29 +409,121 @@ export const storeCMS = {
   normalizeProduct: (p) => {
     if (!p || typeof p !== 'object') return null;
 
-    let safeImages = ['https://images.unsplash.com/photo-1592750475338-74b7b21085ab?q=80&w=1000&auto=format&fit=crop'];
-    if (p.images) {
-      if (Array.isArray(p.images) && p.images.length > 0) {
-        const filtered = p.images.filter(img => img && typeof img === 'string' && img.trim().length > 0);
-        if (filtered.length > 0) safeImages = filtered;
-      } else if (typeof p.images === 'string' && p.images.trim().length > 0) {
-        safeImages = [p.images.trim()];
+    // 1. Process Images
+    let safeImages = [];
+    if (Array.isArray(p.images)) {
+      safeImages = p.images.filter(img => img && typeof img === 'string' && img.trim().length > 0);
+    } else if (typeof p.images === 'string' && p.images.trim().length > 0) {
+      safeImages = [p.images.trim()];
+    }
+
+    // 2. Process Multi-Color Galleries
+    let safeColors = [];
+    if (Array.isArray(p.colors) && p.colors.length > 0) {
+      safeColors = p.colors.map((c, idx) => {
+        if (typeof c === 'string') {
+          return {
+            id: `col-${idx + 1}`,
+            name: c.trim(),
+            hex: '#878681',
+            images: safeImages
+          };
+        }
+        if (c && typeof c === 'object') {
+          const colorImgs = Array.isArray(c.images) 
+            ? c.images.filter(img => img && typeof img === 'string' && img.trim().length > 0)
+            : (typeof c.images === 'string' && c.images.trim() ? [c.images.trim()] : []);
+          return {
+            id: c.id || `col-${idx + 1}-${Date.now()}`,
+            name: c.name || `Color ${idx + 1}`,
+            hex: c.hex || '#878681',
+            images: colorImgs.length > 0 ? colorImgs : safeImages
+          };
+        }
+        return null;
+      }).filter(Boolean);
+    }
+
+    // If no colors array but single color string exists
+    if (safeColors.length === 0) {
+      const primaryColorName = p.color || 'Standard';
+      safeColors = [
+        {
+          id: 'col-1',
+          name: primaryColorName,
+          hex: '#878681',
+          images: safeImages.length > 0 ? safeImages : ['https://images.unsplash.com/photo-1592750475338-74b7b21085ab?q=80&w=1000&auto=format&fit=crop']
+        }
+      ];
+    }
+
+    // Ensure safeImages has at least 1 image
+    if (safeImages.length === 0) {
+      const firstColorImages = safeColors[0]?.images || [];
+      if (firstColorImages.length > 0) {
+        safeImages = firstColorImages;
+      } else {
+        safeImages = ['https://images.unsplash.com/photo-1592750475338-74b7b21085ab?q=80&w=1000&auto=format&fit=crop'];
       }
     }
 
+    const bmPrice = Number(p.bmPrice) || 0;
+    const marketPrice = Number(p.marketPrice) || bmPrice;
+    const discount = (marketPrice > bmPrice)
+      ? Math.round(((marketPrice - bmPrice) / marketPrice) * 100)
+      : (Number(p.discount) || 0);
+
     return {
       ...p,
-      id: p.id || `bm-prod-${Date.now()}`,
+      id: p.id ? String(p.id) : `bm-prod-${Date.now()}`,
       title: p.title || 'Smartphone',
       brand: p.brand || 'Apple',
+      model: p.model || '',
       category: p.category || 'Flagship Titans',
       ram: p.ram || '8GB',
       storage: p.storage || '256GB',
-      color: p.color || 'Natural Titanium',
-      bmPrice: Number(p.bmPrice) || 0,
-      marketPrice: Number(p.marketPrice) || Number(p.bmPrice) || 0,
+      color: safeColors[0]?.name || p.color || 'Standard',
+      colors: safeColors,
+      bmPrice,
+      marketPrice,
+      discount,
       stock: typeof p.stock === 'number' ? p.stock : 10,
-      images: safeImages
+      images: safeImages,
+      processor: p.processor || '',
+      display: p.display || '',
+      camera: p.camera || '',
+      battery: p.battery || '',
+      condition: p.condition || (p.isSecondHand ? 'Certified Pre-Owned — Tested & Verified' : 'Brand New Sealed Box — 1 Year Official Warranty'),
+      warranty: p.warranty || (p.isSecondHand ? '3 Months Balaji Mobile Shop Warranty' : '1 Year Official Brand Warranty'),
+      deliveryInfo: p.deliveryInfo || 'White-Glove Insured Express Delivery across India (1-3 Days)',
+      replacementInfo: p.replacementInfo || '7 Days Replacement Guarantee on Manufacturing Defects',
+      imei: p.imei || '',
+      description: p.description || '',
+      features: Array.isArray(p.features) ? p.features : (typeof p.features === 'string' ? p.features.split('\n').filter(Boolean) : []),
+      specs: (typeof p.specs === 'object' && p.specs) ? p.specs : {},
+      accessories: Array.isArray(p.accessories) ? p.accessories : [],
+      rating: Number(p.rating) || 5.0,
+      reviewsCount: Number(p.reviewsCount) || 0,
+      isFeatured: Boolean(p.isFeatured),
+      isTrending: Boolean(p.isTrending),
+      isNewArrival: Boolean(p.isNewArrival),
+      isFlashSale: Boolean(p.isFlashSale),
+      isSecondHand: Boolean(p.isSecondHand),
+      variants: Array.isArray(p.variants) && p.variants.length > 0 ? p.variants : [
+        {
+          id: `var-${p.id || '1'}`,
+          color: safeColors[0]?.name || p.color || 'Standard',
+          ram: p.ram || '8GB',
+          storage: p.storage || '256GB',
+          bmPrice,
+          marketPrice,
+          stock: typeof p.stock === 'number' ? p.stock : 10
+        }
+      ],
+      ramOptions: Array.isArray(p.ramOptions) && p.ramOptions.length > 0 ? p.ramOptions : [p.ram || '8GB'],
+      storageOptions: Array.isArray(p.storageOptions) && p.storageOptions.length > 0 ? p.storageOptions : [p.storage || '256GB'],
+      frames360: Array.isArray(p.frames360) ? p.frames360 : [],
+      videoUrl: p.videoUrl || ''
     };
   },
 
@@ -475,31 +536,31 @@ export const storeCMS = {
 
   getProductById: (id) => {
     const products = storeCMS.getProducts();
-    const found = products.find(p => p.id === id);
+    const found = products.find(p => String(p.id) === String(id));
     if (found) return found;
     return storeCMS.getSecondHandProductById(id);
   },
 
   saveProducts: (products) => {
-    setLocal(STORAGE_KEYS.PRODUCTS, products);
+    setLocal(STORAGE_KEYS.PRODUCTS, products.map(storeCMS.normalizeProduct).filter(Boolean));
     storeCMS.syncToCloud();
   },
 
   addProduct: (product) => {
     const products = storeCMS.getProducts();
-    const newProduct = {
+    const newId = product.id && !products.some(p => String(p.id) === String(product.id))
+      ? String(product.id)
+      : `bm-prod-${Date.now()}`;
+
+    const newProduct = storeCMS.normalizeProduct({
       ...product,
-      id: product.id || `bm-prod-${Date.now()}`,
+      id: newId,
+      isSecondHand: false,
       isNewArrival: typeof product.isNewArrival === 'boolean' ? product.isNewArrival : true,
-      isTrending: typeof product.isTrending === 'boolean' ? product.isTrending : true,
-      rating: product.rating || 5.0,
-      reviewsCount: product.reviewsCount || 0,
-      discount: Math.round(((product.marketPrice - product.bmPrice) / product.marketPrice) * 100),
-      images: product.images && product.images.length > 0 ? product.images : [
-        "https://images.unsplash.com/photo-1592750475338-74b7b21085ab?q=80&w=1000&auto=format&fit=crop"
-      ]
-    };
-    const updated = [newProduct, ...products];
+      isTrending: typeof product.isTrending === 'boolean' ? product.isTrending : true
+    });
+
+    const updated = [newProduct, ...products.filter(p => String(p.id) !== String(newProduct.id))];
     setLocal(STORAGE_KEYS.PRODUCTS, updated);
     
     // Automatically trigger WhatsApp notification alerts for interested customers!
@@ -519,23 +580,33 @@ export const storeCMS = {
 
   updateProduct: (id, updatedFields) => {
     const products = storeCMS.getProducts();
+    let found = false;
     const updated = products.map(p => {
-      if (p.id === id) {
-        const merged = { ...p, ...updatedFields };
-        if (merged.marketPrice && merged.bmPrice) {
-          merged.discount = Math.round(((merged.marketPrice - merged.bmPrice) / merged.marketPrice) * 100);
-        }
-        return merged;
+      if (String(p.id) === String(id)) {
+        found = true;
+        const merged = { ...p, ...updatedFields, id: p.id };
+        return storeCMS.normalizeProduct(merged);
       }
       return p;
     });
-    setLocal(STORAGE_KEYS.PRODUCTS, updated);
-    storeCMS.syncToCloud();
+
+    if (found) {
+      setLocal(STORAGE_KEYS.PRODUCTS, updated);
+      storeCMS.syncToCloud();
+      return true;
+    }
+
+    // If not found in new products, check second hand
+    const secondHand = storeCMS.getSecondHandProducts();
+    if (secondHand.some(p => String(p.id) === String(id))) {
+      return storeCMS.updateSecondHandProduct(id, updatedFields);
+    }
+    return false;
   },
 
   deleteProduct: (id) => {
     const products = storeCMS.getProducts();
-    const updated = products.filter(p => p.id !== id);
+    const updated = products.filter(p => String(p.id) !== String(id));
     setLocal(STORAGE_KEYS.PRODUCTS, updated);
     storeCMS.syncToCloud();
   },
@@ -549,23 +620,24 @@ export const storeCMS = {
 
   getSecondHandProductById: (id) => {
     const products = storeCMS.getSecondHandProducts();
-    return products.find(p => p.id === id) || null;
+    return products.find(p => String(p.id) === String(id)) || null;
   },
 
   addSecondHandProduct: (product) => {
     const products = storeCMS.getSecondHandProducts();
-    const newProduct = {
+    const newId = product.id && !products.some(p => String(p.id) === String(product.id))
+      ? String(product.id)
+      : `bm-sh-${Date.now()}`;
+
+    const newProduct = storeCMS.normalizeProduct({
       ...product,
-      id: product.id || `bm-sh-${Date.now()}`,
+      id: newId,
       isSecondHand: true,
-      rating: product.rating || 4.0,
-      reviewsCount: product.reviewsCount || 0,
-      discount: Math.round(((product.marketPrice - product.bmPrice) / product.marketPrice) * 100),
-      images: product.images && product.images.length > 0 ? product.images : [
-        "https://images.unsplash.com/photo-1592750475338-74b7b21085ab?q=80&w=1000&auto=format&fit=crop"
-      ]
-    };
-    const updated = [newProduct, ...products];
+      rating: product.rating || 4.5,
+      reviewsCount: product.reviewsCount || 0
+    });
+
+    const updated = [newProduct, ...products.filter(p => String(p.id) !== String(newProduct.id))];
     setLocal(STORAGE_KEYS.SECONDHAND, updated);
 
     // Automatically trigger WhatsApp notification alerts for interested customers!
@@ -586,22 +658,20 @@ export const storeCMS = {
   updateSecondHandProduct: (id, updatedFields) => {
     const products = storeCMS.getSecondHandProducts();
     const updated = products.map(p => {
-      if (p.id === id) {
-        const merged = { ...p, ...updatedFields };
-        if (merged.marketPrice && merged.bmPrice) {
-          merged.discount = Math.round(((merged.marketPrice - merged.bmPrice) / merged.marketPrice) * 100);
-        }
-        return merged;
+      if (String(p.id) === String(id)) {
+        const merged = { ...p, ...updatedFields, id: p.id, isSecondHand: true };
+        return storeCMS.normalizeProduct(merged);
       }
       return p;
     });
     setLocal(STORAGE_KEYS.SECONDHAND, updated);
     storeCMS.syncToCloud();
+    return true;
   },
 
   deleteSecondHandProduct: (id) => {
     const products = storeCMS.getSecondHandProducts();
-    const updated = products.filter(p => p.id !== id);
+    const updated = products.filter(p => String(p.id) !== String(id));
     setLocal(STORAGE_KEYS.SECONDHAND, updated);
     storeCMS.syncToCloud();
   },
@@ -668,6 +738,19 @@ export const storeCMS = {
     const current = storeCMS.getSettings();
     setLocal(STORAGE_KEYS.SETTINGS, { ...current, ...newSettings });
     storeCMS.syncToCloud();
+  },
+
+  // ========== HERO MEDIA CUSTOMIZER ==========
+  getHeroMedia: () => {
+    const settings = storeCMS.getSettings();
+    return getLocal(STORAGE_KEYS.HERO_MEDIA, settings.heroMedia || INITIAL_HERO_MEDIA);
+  },
+  saveHeroMedia: (heroMedia) => {
+    setLocal(STORAGE_KEYS.HERO_MEDIA, heroMedia);
+    const current = storeCMS.getSettings();
+    setLocal(STORAGE_KEYS.SETTINGS, { ...current, heroMedia });
+    storeCMS.syncToCloud();
+    window.dispatchEvent(new CustomEvent('bm_cms_update', { detail: { source: 'hero_media' } }));
   },
 
   // ========== TIMER HELPERS ==========
@@ -855,8 +938,8 @@ export const storeCMS = {
   placeOrder: (orderData) => {
     const orders = storeCMS.getAllOrders();
     const currentUser = storeCMS.getUser();
-    const isOnline = orderData.paymentMethod !== 'Cash on Delivery';
-    const payStatus = orderData.paymentStatus || (isOnline ? `${orderData.paymentMethod || 'Online Payment'} — Pending Owner Bank Verification` : 'COD — Pending');
+    const isCOD = orderData.paymentMethod === 'Cash on Delivery';
+    const payStatus = orderData.paymentStatus || (isCOD ? 'COD — Pending' : 'Paid');
 
     const newOrder = {
       ...orderData,
@@ -867,15 +950,18 @@ export const storeCMS = {
       customerName: (orderData.customerName || currentUser?.name || 'Valued Client').trim(),
       placedAt: new Date().toISOString(),
       orderStatus: 'Order Placed',
+      paymentMethod: orderData.paymentMethod || 'Razorpay',
       paymentStatus: payStatus,
       paymentId: orderData.paymentId || '',
+      razorpayOrderId: orderData.razorpayOrderId || '',
+      razorpaySignature: orderData.razorpaySignature || '',
       paymentScreenshot: orderData.paymentScreenshot || null,
       trackingNumber: `SHIP-${Math.floor(10000000 + Math.random() * 90000000)}`,
       courierName: 'Shiprocket / BlueDart Express',
       estDelivery: 'Within 2-3 Business Days',
       timeline: [
         { status: 'Order Placed', time: new Date().toLocaleString(), done: true },
-        { status: 'Bank Payment Verification', time: isOnline ? 'Pending Owner Check' : 'COD Payment on Delivery', done: !isOnline },
+        { status: 'Payment Verification', time: isCOD ? 'COD on Delivery' : 'Razorpay Verified', done: !isCOD },
         { status: 'Packed & Quality Verified', time: 'Pending', done: false },
         { status: 'Handed to Courier', time: 'Pending', done: false },
         { status: 'Out for Delivery', time: 'Pending', done: false },
@@ -905,16 +991,15 @@ export const storeCMS = {
     const ownerNotif = {
       id: `NOTIF-${Date.now()}`,
       orderId: newOrder.id,
-      title: isOnline
-        ? `⚠️ VERIFY PAYMENT: #${newOrder.id} (${newOrder.customerName} - ₹${newOrder.totalAmount.toLocaleString('en-IN')})`
-        : `🚨 NEW COD ORDER #${newOrder.id} (${newOrder.customerName})`,
+      title: isCOD
+        ? `🚨 NEW COD ORDER #${newOrder.id} (${newOrder.customerName} - ₹${newOrder.totalAmount.toLocaleString('en-IN')})`
+        : `⚡ NEW RAZORPAY ORDER #${newOrder.id} (${newOrder.customerName} - ₹${newOrder.totalAmount.toLocaleString('en-IN')})`,
       customerName: newOrder.customerName,
       customerPhone: newOrder.phone,
       customerEmail: newOrder.email,
       totalAmount: newOrder.totalAmount,
       paymentMethod: newOrder.paymentMethod,
       paymentId: newOrder.paymentId,
-      paymentScreenshot: newOrder.paymentScreenshot,
       paymentStatus: newOrder.paymentStatus,
       fullAddress: `${newOrder.address}, ${newOrder.city}, ${newOrder.district}, ${newOrder.state} - ${newOrder.pincode}`,
       placedAt: newOrder.placedAt,
@@ -1174,9 +1259,9 @@ Thank you for shopping at *Balaji Mobile — Morbi, Gujarat!*
 For support, call us: +91 79906 48756`;
 
     // Store Owner WhatsApp Notification Message
-    const isOnline = order.paymentMethod !== 'Cash on Delivery';
+    const isCOD = order.paymentMethod === 'Cash on Delivery';
     const ownerMsg = 
-`🚨 *${isOnline ? 'ONLINE PREPAYMENT VERIFICATION REQUIRED' : 'NEW COD ORDER RECEIVED'} — BALAJI MOBILE*
+`⚡ *${isCOD ? 'NEW COD ORDER RECEIVED' : 'NEW RAZORPAY VERIFIED ORDER'} — BALAJI MOBILE*
 ────────────────────────────────────────
 🆔 *Order ID:* #${order.id}
 📅 *Date & Time:* ${new Date(order.placedAt || Date.now()).toLocaleString('en-IN')}
@@ -1191,15 +1276,11 @@ For support, call us: +91 79906 48756`;
 ${itemsSummary}
 
 💰 *TOTAL AMOUNT:* ₹${order.totalAmount.toLocaleString('en-IN')}
-💳 *PAYMENT METHOD:* ${order.paymentMethod}
-🔢 *UPI UTR / REF NO.:* ${order.paymentId || 'Customer submitting proof via WhatsApp'}
-📊 *PAYMENT STATUS:* ${order.paymentStatus || 'Pending Owner Verification'}
-📸 *SCREENSHOT PROOF:* ${order.paymentScreenshot ? '✅ Attached with Order (View in Admin)' : 'Pending Customer WhatsApp Share'}
+💳 *PAYMENT METHOD:* ${order.paymentMethod || 'Razorpay'}
+🔢 *PAYMENT / TXN ID:* ${order.paymentId || 'N/A'}
+📊 *PAYMENT STATUS:* ${order.paymentStatus || 'Paid'}
 
-⚠️ *OWNER VERIFICATION INSTRUCTION:*
-1. Check GPay / Bank App on your phone (+91 79906 48756) for credit of ₹${order.totalAmount.toLocaleString('en-IN')}.
-2. Confirm receipt: IF AND ONLY IF payment is received in your bank account, dispatch the order; otherwise reject/cancel.
-3. Manage / Confirm in Admin Panel: https://balajimobile.store/admin`;
+Manage & dispatch order in Admin Dashboard: https://balajimobile.store/admin`;
 
     const customerPhoneClean = (order.phone || '').replace(/[^0-9]/g, '');
     const fullCustomerPhone = customerPhoneClean.startsWith('91') ? customerPhoneClean : `91${customerPhoneClean}`;

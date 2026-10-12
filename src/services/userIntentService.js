@@ -34,7 +34,12 @@ export const userIntentService = {
    * Get active logged-in customer phone number (defaults to user 7990648756 if none)
    */
   getUserPhone: () => {
-    return localStorage.getItem(USER_PHONE_KEY) || '7990648756';
+    const current = localStorage.getItem(USER_PHONE_KEY);
+    if (!current || current === '9429766354') {
+      localStorage.setItem(USER_PHONE_KEY, '7990648756');
+      return '7990648756';
+    }
+    return current;
   },
 
   /**
@@ -43,7 +48,9 @@ export const userIntentService = {
   trackSearch: (searchQuery) => {
     if (!searchQuery || searchQuery.trim().length < 2) return;
     const phone = userIntentService.getUserPhone();
+    if (phone === '9429766354') return;
     const profiles = getStorage(INTENT_KEY, {});
+    delete profiles['9429766354'];
 
     const userProfile = profiles[phone] || {
       phone,
@@ -78,7 +85,9 @@ export const userIntentService = {
   trackCartItem: (product) => {
     if (!product) return;
     const phone = userIntentService.getUserPhone();
+    if (phone === '9429766354') return;
     const profiles = getStorage(INTENT_KEY, {});
+    delete profiles['9429766354'];
 
     const userProfile = profiles[phone] || {
       phone,
@@ -104,12 +113,38 @@ export const userIntentService = {
   },
 
   /**
+   * Delete a specific customer intent profile by phone
+   */
+  deleteProfile: (phone) => {
+    if (!phone) return;
+    const clean = String(phone).replace(/[^0-9]/g, '');
+    const profiles = getStorage(INTENT_KEY, {});
+    if (profiles[clean]) {
+      delete profiles[clean];
+      setStorage(INTENT_KEY, profiles);
+    }
+  },
+
+  /**
+   * Clear all intent profiles
+   */
+  clearAllProfiles: () => {
+    setStorage(INTENT_KEY, {});
+  },
+
+  /**
    * Get all tracked intent profiles
    */
   getProfiles: () => {
     const profiles = getStorage(INTENT_KEY, {});
-    // Always include sample active profile for phone 7990648756 if empty
-    if (!profiles['7990648756']) {
+    // Purge unwanted number 9429766354 if present in localStorage
+    if (profiles['9429766354']) {
+      delete profiles['9429766354'];
+      setStorage(INTENT_KEY, profiles);
+    }
+
+    // Always include sample active profile for store customer if empty
+    if (Object.keys(profiles).length === 0) {
       profiles['7990648756'] = {
         phone: '7990648756',
         searches: ['iphone', 'iphone 15 pro', 'under 140000'],

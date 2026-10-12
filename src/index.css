@@ -2,6 +2,22 @@
 @tailwind components;
 @tailwind utilities;
 
+@font-face {
+  font-family: 'Valley Sans';
+  src: url('/fonts/ValleySans-VariableFont_wght.ttf') format('truetype');
+  font-weight: 100 900;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Valley Sans';
+  src: url('/fonts/ValleySans-Italic-VariableFont_wght.ttf') format('truetype');
+  font-weight: 100 900;
+  font-style: italic;
+  font-display: swap;
+}
+
 @layer base {
   /* ─── ULTRA-PREMIUM LUXURY SHOWROOM DESIGN SYSTEM ─── */
   :root {
@@ -16,18 +32,26 @@
     --hover-gold: #E7C76A;
   }
 
+  *, *::before, *::after {
+    font-family: 'Valley Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  }
+
   html, body {
     background-color: #050505 !important;
     color: #F8F8F8 !important;
-    font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    font-family: 'Valley Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif !important;
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
     overflow-x: hidden;
   }
 
   h1, h2, h3, h4, h5, h6 {
-    font-family: 'Satoshi', 'General Sans', 'Inter', sans-serif;
+    font-family: 'Valley Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif !important;
     letter-spacing: -0.02em;
+  }
+
+  button, input, optgroup, select, textarea {
+    font-family: 'Valley Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif !important;
   }
 
   /* Custom Luxury Scrollbar */
@@ -186,7 +210,7 @@
   .btn-luxury-primary {
     background: linear-gradient(135deg, #0FAE72 0%, #0B8F5C 100%);
     color: #FFFFFF;
-    font-family: 'Satoshi', sans-serif;
+    font-family: 'Valley Sans', sans-serif;
     font-weight: 700;
     border: 1px solid rgba(255, 255, 255, 0.15);
     box-shadow: 0 8px 25px rgba(15, 174, 114, 0.35);
@@ -205,7 +229,7 @@
     backdrop-filter: blur(20px);
     border: 1px solid rgba(255, 255, 255, 0.12);
     color: #F8F8F8;
-    font-family: 'Satoshi', sans-serif;
+    font-family: 'Valley Sans', sans-serif;
     font-weight: 600;
     transition: all 0.5s cubic-bezier(0.16, 1, 0.3, 1);
   }

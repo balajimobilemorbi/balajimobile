@@ -50,7 +50,14 @@ export const invoicePdfService = {
         <meta charset="utf-8" />
         <title>Invoice_${order.id}</title>
         <style>
-          body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #f9fafb; margin: 0; padding: 20px; color: #1f2937; }
+          @font-face {
+            font-family: 'Valley Sans';
+            src: url('/fonts/ValleySans-VariableFont_wght.ttf') format('truetype');
+            font-weight: 100 900;
+            font-style: normal;
+          }
+          * { font-family: 'Valley Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; }
+          body { font-family: 'Valley Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background-color: #f9fafb; margin: 0; padding: 20px; color: #1f2937; }
           .invoice-box { max-width: 800px; margin: auto; padding: 30px; border: 1px solid #e5e7eb; background: #ffffff; border-radius: 16px; box-shadow: 0 10px 25px rgba(0,0,0,0.05); }
           .header { display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid #10b981; padding-bottom: 20px; margin-bottom: 20px; }
           .logo { font-size: 24px; font-weight: 900; color: #047857; letter-spacing: -0.5px; }

@@ -179,7 +179,7 @@ export default function OrderSuccessModal({ order, onClose }) {
           <div>
             <div className="inline-flex items-center gap-1.5 px-3.5 py-1 rounded-full bg-[#0FAE72]/15 border border-[#0FAE72]/40 text-[#0FAE72] text-[11px] font-mono font-bold mb-1.5 shadow-inner">
               <Zap className="w-3.5 h-3.5 fill-[#0FAE72] animate-pulse" />
-              <span>{isOnlinePayment ? 'ONLINE PAYMENT SUBMITTED — UNDER VERIFICATION' : 'PAYMENT CONFIRMED & INVOICE GENERATED'}</span>
+              <span>{order.paymentMethod === 'Cash on Delivery' ? '🚚 CASH ON DELIVERY CONFIRMED' : '⚡ PAYMENT VERIFIED & CONFIRMED (RAZORPAY)'}</span>
             </div>
 
             <h2 className="font-display font-black text-xl sm:text-2xl text-[#F8F8F8] tracking-tight">
@@ -191,44 +191,6 @@ export default function OrderSuccessModal({ order, onClose }) {
             </p>
           </div>
         </div>
-
-        {/* SOLID HIGH-CONTRAST RED WARNING SECTION */}
-        {isOnlinePayment && (
-          <div 
-            className="p-4 sm:p-5 rounded-2xl border-2 border-red-500 shadow-[0_10px_35px_rgba(220,38,38,0.35)] space-y-3 font-mono text-xs relative z-10 bm-solid-red-card"
-            style={{ backgroundColor: '#200508', borderColor: '#EF4444' }}
-          >
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-2">
-                <AlertTriangle className="w-5 h-5 text-red-500 shrink-0 animate-bounce" />
-                <span className="font-black text-white text-xs sm:text-sm uppercase tracking-wide">
-                  CRITICAL PAYMENT VERIFICATION WARNING
-                </span>
-              </div>
-              <span className="bg-red-600 text-white text-[9.5px] px-2.5 py-0.5 rounded-full font-bold uppercase tracking-wider shrink-0 shadow-sm">
-                VERIFYING BANK
-              </span>
-            </div>
-
-            <p className="text-red-100 text-xs sm:text-[13px] leading-relaxed font-sans font-medium">
-              When you pay using an online transaction, the <strong>Owner of Balaji Mobile</strong> checks and verifies if the payment is received and fulfilled in the store's official bank account. Your order will be confirmed &amp; dispatched IF AND ONLY IF payment is verified; otherwise, your order will fail or be cancelled.
-            </p>
-
-            {order.paymentScreenshot ? (
-              <div className="pt-2 border-t border-red-500/40 flex items-center justify-between text-[11px] text-emerald-400 font-bold">
-                <span className="flex items-center gap-1.5">
-                  <CheckCircle2 className="w-4 h-4 text-emerald-400" />
-                  Payment screenshot proof attached with order
-                </span>
-                <span className="text-red-300 text-[10px]">Sent to Owner</span>
-              </div>
-            ) : (
-              <div className="pt-2 border-t border-red-500/40 text-[11px] text-amber-300 font-sans font-semibold flex items-center gap-1.5">
-                <span>📸 Please share your payment screenshot on WhatsApp below for instant verification.</span>
-              </div>
-            )}
-          </div>
-        )}
 
         {/* AUTOMATIC EMAIL BILL & WHATSAPP STATUS BANNER */}
         <div className="p-3.5 rounded-2xl bg-[#050505] border border-[#0FAE72]/40 space-y-2 font-mono text-xs shadow-md">
@@ -269,10 +231,10 @@ export default function OrderSuccessModal({ order, onClose }) {
             </div>
           </div>
 
-          {/* Payment & UTR Details */}
+          {/* Payment Details */}
           <div className="flex justify-between items-center text-[11px] pb-2 border-b border-white/[0.08]">
             <span className="text-[#B8BDC8]">Payment Mode:</span>
-            <span className="text-[#F8F8F8] font-bold">{order.paymentMethod} {order.paymentId ? `(UTR: ${order.paymentId})` : ''}</span>
+            <span className="text-[#F8F8F8] font-bold">{order.paymentMethod || 'Razorpay'} {order.paymentId ? `(ID: ${order.paymentId})` : ''}</span>
           </div>
 
           {/* Delivery Location */}

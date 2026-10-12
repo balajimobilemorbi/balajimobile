@@ -1,10 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { 
-  Lock, QrCode, Truck, ArrowRight, AlertTriangle, ShieldCheck, ShieldAlert
+  Lock, CreditCard, Truck, ArrowRight, ShieldCheck, Zap
 } from 'lucide-react';
 import PaymentGatewayModal from '../components/checkout/PaymentGatewayModal';
-import PaymentWarningModal from '../components/checkout/PaymentWarningModal';
 import OrderSuccessModal from '../components/checkout/OrderSuccessModal';
 import { INDIA_STATES_DATA, validateAddressForm } from '../data/indiaLocations';
 import { storeCMS } from '../services/storeCMS';
@@ -30,8 +29,7 @@ export default function CheckoutPage() {
   // Validation Errors state
   const [formErrors, setFormErrors] = useState({});
 
-  const [paymentMethod, setPaymentMethod] = useState('Razorpay UPI');
-  const [showWarningModal, setShowWarningModal] = useState(false);
+  const [paymentMethod, setPaymentMethod] = useState('Razorpay');
   const [showGatewayModal, setShowGatewayModal] = useState(false);
   const [placedOrder, setPlacedOrder] = useState(null);
   const [showSuccessModal, setShowSuccessModal] = useState(false);
@@ -104,7 +102,6 @@ export default function CheckoutPage() {
         companyName
       });
 
-      // Automatically dispatch real email bill & invoice to customer and alert to store owner
       try {
         notificationService.dispatchOrderNotifications(newOrder);
       } catch (e) {}
@@ -113,17 +110,13 @@ export default function CheckoutPage() {
       setPlacedOrder(newOrder);
       setShowSuccessModal(true);
     } else {
-      // Mandatory Red Warning Popup before proceeding to payment
-      setShowWarningModal(true);
+      // Proceed to Razorpay checkout
+      setShowGatewayModal(true);
     }
   };
 
   const handlePaymentSuccess = (paymentDetails) => {
     setShowGatewayModal(false);
-
-    const payStatusLabel = paymentDetails.pendingVerification
-      ? `${paymentDetails.method || 'Online Payment'} — ⚠️ Pending Owner Verification`
-      : paymentDetails.method === 'Cash on Delivery' ? 'COD — Pending' : `${paymentDetails.method || 'Online Payment'} — Paid`;
 
     const newOrder = storeCMS.placeOrder({
       customerName,
@@ -136,16 +129,16 @@ export default function CheckoutPage() {
       pincode,
       items: cart,
       totalAmount: grandTotal,
-      paymentMethod: paymentDetails.method || paymentMethod,
-      paymentId: paymentDetails.paymentId || paymentDetails.utrNumber || '',
-      paymentScreenshot: paymentDetails.screenshot || null,
-      paymentStatus: payStatusLabel,
+      paymentMethod: paymentDetails.method || 'Razorpay',
+      paymentId: paymentDetails.paymentId || '',
+      razorpayOrderId: paymentDetails.orderId || '',
+      razorpaySignature: paymentDetails.signature || '',
+      paymentStatus: paymentDetails.status || 'Paid',
       isGstBilling,
       gstin,
       companyName
     });
 
-    // Automatically dispatch real email bill & invoice to customer and alert to store owner
     try {
       notificationService.dispatchOrderNotifications(newOrder);
     } catch (e) {}
@@ -336,42 +329,28 @@ export default function CheckoutPage() {
             </h3>
 
             <div className="space-y-3 font-mono text-xs">
+              {/* Official Razorpay Gateway Option */}
               <label className={`p-4.5 rounded-2xl border flex items-center justify-between cursor-pointer transition-all duration-300 ${
-                paymentMethod === 'Razorpay UPI' ? 'bg-white/[0.04] border-[#D4AF37] text-[#E7C76A] font-bold' : 'bg-[#050505] border-white/[0.08] text-[#B8BDC8]'
+                paymentMethod === 'Razorpay' ? 'bg-white/[0.04] border-[#D4AF37] text-[#E7C76A] font-bold' : 'bg-[#050505] border-white/[0.08] text-[#B8BDC8]'
               }`}>
                 <div className="flex items-center gap-3">
                   <input
                     type="radio"
                     name="payment"
-                    value="Razorpay UPI"
-                    checked={paymentMethod === 'Razorpay UPI'}
-                    onChange={() => setPaymentMethod('Razorpay UPI')}
+                    value="Razorpay"
+                    checked={paymentMethod === 'Razorpay'}
+                    onChange={() => setPaymentMethod('Razorpay')}
                     className="accent-[#D4AF37]"
                   />
                   <div>
-                    <span className="text-[#F8F8F8] block">UPI QR / GPay / PhonePe / Paytm</span>
-                    <span className="text-[10px] text-[#B8BDC8]">Instant verification with UPI UTR ID</span>
+                    <span className="text-[#F8F8F8] block font-sans font-bold text-sm">Razorpay (Cards, UPI, NetBanking, Wallets)</span>
+                    <span className="text-[10px] text-[#B8BDC8]">Official Secure Payment Gateway • Test / Demo Mode</span>
                   </div>
                 </div>
-                <QrCode className="w-5 h-5 text-[#D4AF37]" />
+                <CreditCard className="w-5 h-5 text-[#D4AF37]" />
               </label>
 
-              {/* Important Prepayment Warning Alert - HIGHLIGHTED IN SOLID RED */}
-              {paymentMethod === 'Razorpay UPI' && (
-                <div 
-                  className="p-4.5 rounded-2xl border-2 border-red-500 text-red-100 text-xs font-mono space-y-2.5 animate-in fade-in duration-300 shadow-[0_10px_35px_rgba(239,68,68,0.3)] bm-solid-red-card"
-                  style={{ backgroundColor: '#200508', borderColor: '#EF4444' }}
-                >
-                  <div className="flex items-center gap-2 font-bold text-white text-sm">
-                    <ShieldAlert className="w-5 h-5 text-red-500 shrink-0 animate-bounce" />
-                    <span className="uppercase tracking-wide">⚠️ CRITICAL PAYMENT VERIFICATION POLICY:</span>
-                  </div>
-                  <p className="text-[12px] leading-relaxed text-red-100 font-sans font-medium">
-                    When you pay using an online transaction (GPay, PhonePe, Paytm, QR, UPI, Cards, Net Banking), an instant notification is dispatched to the <strong>Owner of Balaji Mobile (+91 79906 48756)</strong>. The owner will check and verify if the payment is received and fulfilled in the store's official bank account. Your order will be confirmed &amp; dispatched IF AND ONLY IF payment is verified; otherwise, your order will fail or be cancelled. You will also be required to upload your payment screenshot proof and 12-digit UTR reference code.
-                  </p>
-                </div>
-              )}
-
+              {/* Cash on Delivery Option */}
               <label className={`p-4.5 rounded-2xl border flex items-center justify-between cursor-pointer transition-all duration-300 ${
                 paymentMethod === 'Cash on Delivery' ? 'bg-white/[0.04] border-[#D4AF37] text-[#E7C76A] font-bold' : 'bg-[#050505] border-white/[0.08] text-[#B8BDC8]'
               }`}>
@@ -385,7 +364,7 @@ export default function CheckoutPage() {
                     className="accent-[#D4AF37]"
                   />
                   <div>
-                    <span className="text-[#F8F8F8] block">Cash on Delivery (COD)</span>
+                    <span className="text-[#F8F8F8] block font-sans font-bold text-sm">Cash on Delivery (COD)</span>
                     <span className="text-[10px] text-[#B8BDC8]">Pay cash upon delivery at your doorstep</span>
                   </div>
                 </div>
@@ -425,30 +404,16 @@ export default function CheckoutPage() {
               className="w-full py-4.5 rounded-2xl bg-gradient-to-r from-[#0FAE72] to-[#0B8F5C] hover:from-[#D4AF37] hover:to-[#E7C76A] hover:text-[#050505] text-white font-bold text-sm shadow-[0_4px_20px_rgba(15,174,114,0.35)] transition-all duration-500 flex items-center justify-center gap-2 font-sans"
             >
               <Lock className="w-4 h-4" />
-              <span>Complete Acquisition ₹{grandTotal.toLocaleString('en-IN')}</span>
+              <span>{paymentMethod === 'Razorpay' ? `Pay ₹${grandTotal.toLocaleString('en-IN')} via Razorpay` : `Place COD Order ₹${grandTotal.toLocaleString('en-IN')}`}</span>
             </button>
           </div>
         </div>
 
       </form>
 
-      {/* Mandatory Red Warning Confirmation Popup */}
-      {showWarningModal && (
-        <PaymentWarningModal
-          isOpen={showWarningModal}
-          totalAmount={grandTotal}
-          onClose={() => setShowWarningModal(false)}
-          onConfirm={() => {
-            setShowWarningModal(false);
-            setShowGatewayModal(true);
-          }}
-        />
-      )}
-
       {showGatewayModal && (
         <PaymentGatewayModal
           orderDetails={{ totalAmount: grandTotal, customerName, email, phone }}
-          gatewayType={paymentMethod === 'Stripe' ? 'stripe' : 'razorpay'}
           onSuccess={handlePaymentSuccess}
           onCancel={() => setShowGatewayModal(false)}
         />
@@ -464,3 +429,4 @@ export default function CheckoutPage() {
     </div>
   );
 }
+

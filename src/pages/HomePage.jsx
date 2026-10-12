@@ -10,6 +10,7 @@ import { storeCMS } from '../services/storeCMS';
 
 export default function HomePage() {
   const [banners, setBanners]               = useState(storeCMS.getBanners());
+  const [heroMedia, setHeroMedia]           = useState(() => storeCMS.getHeroMedia());
   const [products, setProducts]             = useState(storeCMS.getProducts());
   const [secondHandProducts, setSecondHand] = useState(storeCMS.getSecondHandProducts());
   const [categories, setCategories]         = useState(storeCMS.getCategories());
@@ -35,6 +36,7 @@ export default function HomePage() {
   useEffect(() => {
     const handleUpdate = () => {
       setBanners(storeCMS.getBanners());
+      setHeroMedia(storeCMS.getHeroMedia());
       setProducts(storeCMS.getProducts());
       setSecondHand(storeCMS.getSecondHandProducts());
       setCategories(storeCMS.getCategories());
@@ -147,36 +149,55 @@ export default function HomePage() {
             </div>
           </motion.div>
 
-          {/* Hero Phone Showcase Card with Parallax */}
+          {/* Hero Phone / Media Showcase Card with Parallax */}
           <div className="lg:col-span-5 relative flex justify-center">
             <div 
-              className="relative w-full max-w-md rounded-[32px] p-8 bg-white/[0.05] backdrop-blur-[30px] border border-white/[0.1] shadow-[0_30px_70px_rgba(0,0,0,0.9),0_0_40px_rgba(212,175,55,0.2)] animate-float-slow reflection-sweep"
+              className="relative w-full max-w-md rounded-[32px] p-6 sm:p-8 bg-white/[0.05] backdrop-blur-[30px] border border-white/[0.1] shadow-[0_30px_70px_rgba(0,0,0,0.9),0_0_40px_rgba(212,175,55,0.2)] animate-float-slow reflection-sweep"
               style={{
                 transform: `perspective(1000px) rotateY(${(mousePos.x - 0.5) * 8}deg) rotateX(${(mousePos.y - 0.5) * -8}deg)`
               }}
             >
-              <div className="absolute top-5 right-5 inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold font-mono bg-[#D4AF37]/20 text-[#E7C76A] border border-[#D4AF37]/40 backdrop-blur-md">
-                NEW ARRIVAL
+              {/* Customizable Top Badge */}
+              <div className="absolute top-5 right-5 z-20 inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold font-mono bg-[#D4AF37]/20 text-[#E7C76A] border border-[#D4AF37]/40 backdrop-blur-md shadow-sm">
+                {heroMedia?.badgeText || 'NEW ARRIVAL'}
               </div>
 
-              <div className="w-full h-64 sm:h-72 my-4 flex items-center justify-center overflow-hidden relative">
-                <img 
-                  src={banner?.bgImage || "https://images.unsplash.com/photo-1695048133142-1a20484d2569?q=80&w=1000&auto=format&fit=crop"} 
-                  alt="Hero Flagship Phone"
-                  className="max-h-full max-w-full object-contain filter drop-shadow-[0_25px_35px_rgba(0,0,0,0.9)] hover:scale-105 transition-transform duration-700 ease-out" 
-                />
+              {/* Media Content: Video or Image */}
+              <div className="w-full h-64 sm:h-72 my-4 flex items-center justify-center overflow-hidden rounded-2xl relative bg-black/20">
+                {heroMedia?.mediaType === 'video' && heroMedia?.mediaUrl ? (
+                  <video 
+                    src={heroMedia.mediaUrl} 
+                    autoPlay={heroMedia.videoAutoplay ?? true} 
+                    loop={heroMedia.videoLoop ?? true} 
+                    muted={heroMedia.videoMuted ?? true} 
+                    controls={Boolean(heroMedia.videoControls)}
+                    playsInline
+                    className="w-full h-full object-cover rounded-2xl filter drop-shadow-[0_20px_30px_rgba(0,0,0,0.8)]"
+                  />
+                ) : (
+                  <img 
+                    src={heroMedia?.mediaUrl || banner?.bgImage || "https://images.unsplash.com/photo-1695048133142-1a20484d2569?q=80&w=1000&auto=format&fit=crop"} 
+                    alt={heroMedia?.title || "Hero Showcase"}
+                    className="max-h-full max-w-full object-contain filter drop-shadow-[0_25px_35px_rgba(0,0,0,0.9)] hover:scale-105 transition-transform duration-700 ease-out" 
+                  />
+                )}
               </div>
 
-              <div className="pt-5 flex items-center justify-between border-t border-white/[0.08] relative z-10 bg-[#050505]/40 backdrop-blur-md rounded-2xl p-4">
-                <div>
-                  <h4 className="font-display font-bold text-base sm:text-lg text-[#F8F8F8]">iPhone 15 Pro Max</h4>
-                  <p className="text-xs font-mono font-bold text-[#D4AF37] mt-0.5">Showroom Price: ₹1,39,900</p>
+              {/* Customizable Card Footer Info */}
+              <div className="pt-4 flex items-center justify-between border-t border-white/[0.08] relative z-10 bg-[#050505]/40 backdrop-blur-md rounded-2xl p-4">
+                <div className="min-w-0 pr-2">
+                  <h4 className="font-display font-bold text-base sm:text-lg text-[#F8F8F8] truncate">
+                    {heroMedia?.title || 'iPhone 15 Pro Max'}
+                  </h4>
+                  <p className="text-xs font-mono font-bold text-[#D4AF37] mt-0.5 truncate">
+                    {heroMedia?.subtitle || 'Showroom Price: ₹1,39,900'}
+                  </p>
                 </div>
                 <Link 
-                  to="/product/bm-prod-101"
-                  className="px-5 py-2.5 rounded-xl font-bold text-xs bg-gradient-to-r from-[#0FAE72] to-[#0B8F5C] hover:from-[#D4AF37] hover:to-[#E7C76A] hover:text-[#050505] text-white transition-all shadow-md shrink-0"
+                  to={heroMedia?.buttonLink || "/product/bm-prod-101"}
+                  className="px-4 sm:px-5 py-2.5 rounded-xl font-bold text-xs bg-gradient-to-r from-[#0FAE72] to-[#0B8F5C] hover:from-[#D4AF37] hover:to-[#E7C76A] hover:text-[#050505] text-white transition-all shadow-md shrink-0 whitespace-nowrap"
                 >
-                  View Details
+                  {heroMedia?.buttonText || "View Details"}
                 </Link>
               </div>
             </div>
