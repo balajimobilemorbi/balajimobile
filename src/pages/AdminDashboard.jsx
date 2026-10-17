@@ -43,27 +43,17 @@ export default function AdminDashboard() {
   const [editingProductId, setEditingProductId] = useState(null);
   const [isSecondHandModal, setIsSecondHandModal] = useState(false);
   const [productForm, setProductForm] = useState({
-    title: '', brand: 'Apple', model: '', category: 'Flagship Titans', ram: '8GB', storage: '256GB', color: 'Natural Titanium',
-    processor: 'Snapdragon 8 Gen 3', display: '6.7-inch OLED 120Hz',
-    camera: '50MP Main + 50MP Ultra-Wide', battery: '5,000 mAh',
-    condition: 'Brand New Sealed Box - 1 Year Official Warranty', warranty: '1 Year Official Warranty',
-    deliveryInfo: 'Express Delivery 24-48 Hours Across India (Insured)',
-    replacementInfo: '7 Days Replacement Policy',
-    imei: '359481920491029', description: '', marketPrice: 99999, bmPrice: 84999, stock: 10,
-    isFeatured: true, isTrending: false, isFlashSale: false, isNewArrival: false,
-    imagesText: '', frames360Text: '', videoUrl: '',
-    batteryHealth: '95%', deviceAge: '6 Months Old', conditionBadge: 'Superb (9/10)',
-    warrantyStatus: 'Official Warranty', hasBill: 'Original Brand GST Invoice', hasBox: 'Yes - Box & Cable Included'
+    title: '', brand: '', model: '', category: 'Flagship Titans',
+    specsText: '', marketPrice: '', bmPrice: '', stock: 1,
+    isFeatured: false, isTrending: false, isFlashSale: false, isNewArrival: false,
+    videoUrl: ''
   });
 
-  // Multiple Colors with Independent Galleries State
+  // Multiple Colors with Independent Galleries & Video State
   const [colorsList, setColorsList] = useState([
-    { id: 'c-1', name: 'Natural Titanium', hex: '#9A958D', images: [] }
+    { id: 'c-1', name: '', hex: '#000000', images: [], videoUrl: '' }
   ]);
-
-  const [variantsList, setVariantsList] = useState([
-    { id: 'var-1', color: 'Natural Titanium', ram: '12GB', storage: '256GB', bmPrice: 84999, marketPrice: 99999, stock: 10, imagesText: '' }
-  ]);
+  const [variantsList, setVariantsList] = useState([]);
 
   // Security / PIN Change State
   const [currentPinInput, setCurrentPinInput] = useState('');
@@ -764,68 +754,36 @@ export default function AdminDashboard() {
   const handleOpenAddProduct = (isSecondHand = false) => {
     setEditingProductId(null);
     setIsSecondHandModal(isSecondHand);
-    const defaultBmPrice = isSecondHand ? 29999 : 84999;
-    const defaultMarketPrice = isSecondHand ? 45000 : 99999;
     
+    // Blank by default as requested!
     setProductForm({
       title: '',
-      brand: 'Apple',
+      brand: '',
       model: '',
-      category: categories[0]?.name || 'Flagship Titans',
-      ram: '12GB',
-      storage: '256GB',
-      color: 'Natural Titanium',
-      processor: 'Snapdragon 8 Gen 3',
-      display: '6.7-inch OLED 120Hz',
-      camera: '50MP Main + 50MP Ultra-Wide',
-      battery: '5,000 mAh',
-      condition: isSecondHand ? 'Good Condition - Tested & Verified by Balaji Mobile' : 'Brand New Sealed Box - 1 Year Official Warranty',
-      warranty: isSecondHand ? '3 Months Balaji Mobile Shop Warranty' : '1 Year Official Warranty',
-      deliveryInfo: 'Express Delivery 24-48 Hours Across India (Insured)',
-      replacementInfo: '7 Days Replacement Policy',
-      imei: `35${Math.floor(1000000000000 + Math.random() * 9000000000000)}`,
-      description: isSecondHand ? 'Pre-owned flagship device in tested mint condition.' : 'Brand new sealed box with original manufacturer warranty.',
-      marketPrice: defaultMarketPrice,
-      bmPrice: defaultBmPrice,
+      category: isSecondHand ? 'Certified Pre-Owned' : (categories[0]?.name || 'Flagship Titans'),
+      specsText: '',
+      marketPrice: '',
+      bmPrice: '',
       stock: isSecondHand ? 1 : 10,
-      isFeatured: true,
+      isFeatured: false,
       isTrending: false,
       isFlashSale: false,
       isNewArrival: false,
-      imagesText: '',
-      frames360Text: '',
-      videoUrl: '',
-      batteryHealth: '95%',
-      deviceAge: '6 Months Old',
-      conditionBadge: 'Superb (9/10)',
-      warrantyStatus: 'Official Warranty',
-      hasBill: 'Original Brand GST Invoice',
-      hasBox: 'Yes - Box & Cable Included'
+      videoUrl: ''
     });
 
     setColorsList([
       {
         id: `c-${Date.now()}-1`,
-        name: 'Natural Titanium',
-        hex: '#9A958D',
-        images: ['https://images.unsplash.com/photo-1695048133142-1a20484d2569?q=80&w=1200&auto=format&fit=crop']
+        name: '',
+        hex: '#000000',
+        images: [],
+        videoUrl: ''
       }
     ]);
 
-    setVariantsList([
-      { id: 'var-1', color: 'Natural Titanium', ram: '12GB', storage: '256GB', bmPrice: defaultBmPrice, marketPrice: defaultMarketPrice, stock: isSecondHand ? 1 : 10, imagesText: '' }
-    ]);
-
+    setVariantsList([]);
     setShowProductModal(true);
-  };
-
-  const safeArrayJoin = (val) => {
-    if (!val) return '';
-    if (Array.isArray(val)) {
-      return val.map(item => typeof item === 'object' ? JSON.stringify(item) : item).join('\n');
-    }
-    if (typeof val === 'string') return val;
-    return String(val);
   };
 
   const handleOpenEditProduct = (prod, isSecondHand = false) => {
@@ -833,98 +791,68 @@ export default function AdminDashboard() {
     setEditingProductId(prod.id);
     setIsSecondHandModal(isSecondHand);
 
+    // Extract unified specsText from prod
+    let existingSpecsText = prod.specsText || '';
+    if (!existingSpecsText) {
+      const parts = [];
+      if (prod.specs) {
+        if (prod.specs.display) parts.push(`Display: ${prod.specs.display}`);
+        if (prod.specs.processor) parts.push(`Processor: ${prod.specs.processor}`);
+        if (prod.specs.camera) parts.push(`Camera: ${prod.specs.camera}`);
+        if (prod.specs.battery) parts.push(`Battery: ${prod.specs.battery}`);
+      }
+      if (prod.ram) parts.push(`RAM: ${prod.ram}`);
+      if (prod.storage) parts.push(`Storage: ${prod.storage}`);
+      if (prod.condition) parts.push(`Condition: ${prod.condition}`);
+      if (prod.warranty) parts.push(`Warranty: ${prod.warranty}`);
+      if (prod.description && prod.description !== prod.title) parts.push(prod.description);
+      existingSpecsText = parts.join('\n');
+    }
+
     setProductForm({
-      ...prod,
       title: prod.title || '',
-      brand: prod.brand || 'Apple',
+      brand: prod.brand || '',
       model: prod.model || prod.title || '',
-      category: prod.category || categories[0]?.name || 'Flagship Titans',
-      ram: prod.ram || '12GB',
-      storage: prod.storage || '256GB',
-      color: prod.color || 'Natural Titanium',
-      processor: prod.specs?.processor || prod.processor || '',
-      display: prod.specs?.display || prod.display || '',
-      camera: prod.specs?.camera || prod.camera || '',
-      battery: prod.specs?.battery || prod.battery || '',
-      condition: prod.condition || (isSecondHand ? 'Tested & Verified Pre-Owned' : 'Brand New Sealed Box - 1 Year Official Warranty'),
-      warranty: prod.warranty || (isSecondHand ? '3 Months BM Warranty' : '1 Year Official Warranty'),
-      deliveryInfo: prod.deliveryInfo || 'Express Delivery 24-48 Hours Across India (Insured)',
-      replacementInfo: prod.replacementInfo || '7 Days Replacement Policy',
-      imei: prod.imei || '',
-      description: prod.description || '',
-      marketPrice: Number(prod.marketPrice) || Number(prod.bmPrice) || 0,
-      bmPrice: Number(prod.bmPrice) || 0,
-      stock: Number(prod.stock) || 1,
+      category: prod.category || (isSecondHand ? 'Certified Pre-Owned' : (categories[0]?.name || 'Flagship Titans')),
+      specsText: existingSpecsText,
+      marketPrice: prod.marketPrice || '',
+      bmPrice: prod.bmPrice || '',
+      stock: prod.stock || 1,
       isFeatured: Boolean(prod.isFeatured),
       isTrending: Boolean(prod.isTrending),
       isFlashSale: Boolean(prod.isFlashSale),
       isNewArrival: Boolean(prod.isNewArrival),
-      imagesText: Array.isArray(prod.images) ? prod.images.filter(img => typeof img === 'string').join('\n') : (typeof prod.images === 'string' ? prod.images : ''),
-      frames360Text: safeArrayJoin(prod.frames360),
-      videoUrl: prod.videoUrl || '',
-      batteryHealth: prod.batteryHealth || '95%',
-      deviceAge: prod.deviceAge || '6 Months Old',
-      conditionBadge: prod.conditionBadge || 'Superb (9/10)',
-      warrantyStatus: prod.warrantyStatus || 'Official Warranty',
-      hasBill: prod.hasBill || 'Original Brand GST Invoice',
-      hasBox: prod.hasBox || 'Yes - Box & Cable Included'
+      videoUrl: prod.videoUrl || ''
     });
 
     // Populate colorsList from prod.colors
     let parsedColors = [];
     if (Array.isArray(prod.colors) && prod.colors.length > 0) {
-      if (typeof prod.colors[0] === 'object') {
-        parsedColors = prod.colors.map((c, i) => ({
-          id: c.id || `c-${Date.now()}-${i}`,
-          name: c.name || `Color ${i + 1}`,
-          hex: c.hex || '#111827',
-          images: Array.isArray(c.images) && c.images.length > 0 ? c.images : (Array.isArray(prod.images) ? prod.images : [])
-        }));
-      } else {
-        parsedColors = prod.colors.map((cName, i) => ({
-          id: `c-${Date.now()}-${i}`,
-          name: String(cName),
-          hex: '#111827',
-          images: Array.isArray(prod.images) && prod.images.length > 0 ? prod.images : []
-        }));
-      }
+      parsedColors = prod.colors.map((c, i) => ({
+        id: c.id || `c-${Date.now()}-${i}`,
+        name: c.name || '',
+        hex: c.hex || '#000000',
+        images: Array.isArray(c.images) ? c.images : [],
+        videoUrl: c.videoUrl || prod.videoUrl || ''
+      }));
     } else if (prod.color) {
       parsedColors = [{
         id: `c-${Date.now()}-1`,
         name: prod.color,
-        hex: '#111827',
-        images: Array.isArray(prod.images) && prod.images.length > 0 ? prod.images : []
+        hex: '#000000',
+        images: Array.isArray(prod.images) ? prod.images : [],
+        videoUrl: prod.videoUrl || ''
       }];
     } else {
       parsedColors = [{
         id: `c-${Date.now()}-1`,
-        name: 'Black',
-        hex: '#111827',
-        images: Array.isArray(prod.images) && prod.images.length > 0 ? prod.images : []
+        name: '',
+        hex: '#000000',
+        images: Array.isArray(prod.images) ? prod.images : [],
+        videoUrl: prod.videoUrl || ''
       }];
     }
     setColorsList(parsedColors);
-
-    if (prod.variants && Array.isArray(prod.variants) && prod.variants.length > 0) {
-      setVariantsList(prod.variants.map(v => ({
-        ...v,
-        imagesText: safeArrayJoin(v.images || v.imagesText)
-      })));
-    } else {
-      setVariantsList([
-        {
-          id: 'var-1',
-          color: parsedColors[0]?.name || prod.color || 'Natural Titanium',
-          ram: prod.ram || '12GB',
-          storage: prod.storage || '256GB',
-          bmPrice: prod.bmPrice || 84999,
-          marketPrice: prod.marketPrice || 99999,
-          stock: prod.stock || 10,
-          imagesText: Array.isArray(prod.images) ? prod.images.join('\n') : ''
-        }
-      ]);
-    }
-
     setShowProductModal(true);
   };
 
@@ -935,16 +863,17 @@ export default function AdminDashboard() {
       ...colorsList,
       {
         id: newColorId,
-        name: `Color ${colorsList.length + 1}`,
-        hex: '#2B2B2A',
-        images: []
+        name: '',
+        hex: '#000000',
+        images: [],
+        videoUrl: ''
       }
     ]);
   };
 
   const handleRemoveColor = (colorId) => {
     if (colorsList.length <= 1) {
-      alert("A product must have at least 1 color.");
+      alert("A device must have at least 1 color.");
       return;
     }
     setColorsList(colorsList.filter(c => c.id !== colorId));
@@ -975,16 +904,13 @@ export default function AdminDashboard() {
   };
 
   const handleMoveColorImage = (colorId, imgIndex, direction) => {
-    setColorsList(colorsList.map(c => {
+    setColorsList(prev => prev.map(c => {
       if (c.id === colorId) {
-        const images = [...(c.images || [])];
-        const targetIndex = direction === 'left' ? imgIndex - 1 : imgIndex + 1;
-        if (targetIndex >= 0 && targetIndex < images.length) {
-          const temp = images[imgIndex];
-          images[imgIndex] = images[targetIndex];
-          images[targetIndex] = temp;
-        }
-        return { ...c, images };
+        const imgs = [...(c.images || [])];
+        const swapIdx = direction === 'left' ? imgIndex - 1 : imgIndex + 1;
+        if (swapIdx < 0 || swapIdx >= imgs.length) return c;
+        [imgs[imgIndex], imgs[swapIdx]] = [imgs[swapIdx], imgs[imgIndex]];
+        return { ...c, images: imgs };
       }
       return c;
     }));
@@ -1009,56 +935,40 @@ export default function AdminDashboard() {
     e.target.value = '';
   };
 
-  const handleUpdateVariant = (index, field, value) => {
-    const updated = [...variantsList];
-    updated[index] = { ...updated[index], [field]: value };
-    setVariantsList(updated);
-  };
-
-  const handleAddVariantSection = () => {
-    const prevVar = variantsList[variantsList.length - 1] || {};
-    setVariantsList([
-      ...variantsList,
-      {
-        id: `var-${Date.now()}-${variantsList.length + 1}`,
-        color: prevVar.color || 'Black Titanium',
-        ram: prevVar.ram || '12GB',
-        storage: prevVar.storage === '256GB' ? '512GB' : '1TB',
-        bmPrice: (prevVar.bmPrice || 84999) + 10000,
-        marketPrice: (prevVar.marketPrice || 99999) + 10000,
-        stock: prevVar.stock || 5,
-        imagesText: prevVar.imagesText || ''
-      }
-    ]);
-  };
-
-  const handleRemoveVariantSection = (index) => {
-    if (variantsList.length <= 1) return;
-    setVariantsList(variantsList.filter((_, idx) => idx !== index));
+  const handleColorVideoUpload = (colorId, e) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = (event) => {
+      const dataUrl = event.target.result;
+      setColorsList(prev => prev.map(c => c.id === colorId ? { ...c, videoUrl: dataUrl } : c));
+    };
+    reader.readAsDataURL(file);
+    e.target.value = '';
   };
 
   const handleSaveProduct = (e) => {
     e.preventDefault();
 
-    // Prepare structured colors
-    const enrichedColors = colorsList.map((c, i) => {
-      const cImages = Array.isArray(c.images) ? c.images.filter(Boolean) : [];
-      return {
-        id: c.id || `c-${Date.now()}-${i}`,
-        name: (c.name || `Color ${i + 1}`).trim(),
-        hex: c.hex || '#111827',
-        images: cImages
-      };
-    });
+    if (!productForm.title || !productForm.title.trim()) {
+      alert("⚠️ Please enter a Mobile Name.");
+      return;
+    }
+
+    // Structure colors
+    const enrichedColors = colorsList.map((c, i) => ({
+      id: c.id || `c-${Date.now()}-${i}`,
+      name: (c.name || `Color ${i + 1}`).trim(),
+      hex: c.hex || '#000000',
+      images: Array.isArray(c.images) ? c.images.filter(Boolean) : [],
+      videoUrl: c.videoUrl || ''
+    }));
 
     // Collect all photos from all colors for global fallback
     const allColorPhotos = enrichedColors.flatMap(c => c.images).filter(Boolean);
-    const parsedGlobalImages = productForm.imagesText ? productForm.imagesText.split('\n').map(s => s.trim()).filter(Boolean) : [];
-    
-    let defaultImages = allColorPhotos.length > 0 ? allColorPhotos : parsedGlobalImages;
-    if (defaultImages.length === 0) {
-      defaultImages = ['https://images.unsplash.com/photo-1592750475338-74b7b21085ab?q=80&w=1000&auto=format&fit=crop'];
-    }
+    let defaultImages = allColorPhotos.length > 0
+      ? allColorPhotos
+      : ['https://images.unsplash.com/photo-1592750475338-74b7b21085ab?q=80&w=1000&auto=format&fit=crop'];
 
     // Ensure every color has images if empty
     const finalColors = enrichedColors.map(c => ({
@@ -1066,52 +976,46 @@ export default function AdminDashboard() {
       images: c.images.length > 0 ? c.images : defaultImages
     }));
 
-    const parsed360 = productForm.frames360Text ? productForm.frames360Text.split('\n').map(s => s.trim()).filter(Boolean) : [];
-    const firstColor = finalColors[0]?.name || productForm.color || 'Natural Titanium';
+    const primaryColor = finalColors[0]?.name || 'Standard';
+    const primaryVideo = finalColors.find(c => c.videoUrl)?.videoUrl || productForm.videoUrl || '';
 
-    const processedVariants = variantsList.map(v => {
-      const vImages = v.imagesText ? v.imagesText.split('\n').map(s => s.trim()).filter(Boolean) : [];
-      const matchingColor = finalColors.find(c => c.name.toLowerCase() === (v.color || '').toLowerCase());
-      return {
-        ...v,
-        images: vImages.length > 0 ? vImages : (matchingColor?.images?.length ? matchingColor.images : defaultImages)
-      };
+    // Parse specs from specsText for backwards compatibility with front-end
+    const parsedSpecs = {
+      charging: 'Fast Charging Supported',
+      connectivity: '5G Dual SIM, Wi-Fi 6E, Bluetooth 5.3'
+    };
+    const lines = (productForm.specsText || '').split('\n');
+    lines.forEach(line => {
+      const lower = line.toLowerCase();
+      if (lower.includes('display')) parsedSpecs.display = line.replace(/display:?/i, '').trim();
+      else if (lower.includes('processor') || lower.includes('chip')) parsedSpecs.processor = line.replace(/processor:?/i, '').trim();
+      else if (lower.includes('camera')) parsedSpecs.camera = line.replace(/camera:?/i, '').trim();
+      else if (lower.includes('battery')) parsedSpecs.battery = line.replace(/battery:?/i, '').trim();
     });
 
-    const uniqueRams = Array.from(new Set([productForm.ram, ...processedVariants.map(v => v.ram)].filter(Boolean)));
-    const uniqueStorages = Array.from(new Set([productForm.storage, ...processedVariants.map(v => v.storage)].filter(Boolean)));
-
     const payload = {
-      ...productForm,
       title: (productForm.title || '').trim(),
-      brand: (productForm.brand || 'Apple').trim(),
-      model: (productForm.model || productForm.title || '').trim(),
-      category: productForm.category || categories[0]?.name || 'Flagship Titans',
+      brand: (productForm.brand || 'Other').trim(),
+      model: (productForm.title || '').trim(),
+      category: productForm.category || (isSecondHandModal ? 'Certified Pre-Owned' : (categories[0]?.name || 'Flagship Titans')),
       bmPrice: Number(productForm.bmPrice) || 0,
       marketPrice: Number(productForm.marketPrice) || Number(productForm.bmPrice) || 0,
       stock: Number(productForm.stock) || 1,
-      color: firstColor,
+      color: primaryColor,
       colors: finalColors,
       images: finalColors[0]?.images?.length ? finalColors[0].images : defaultImages,
-      frames360: parsed360.length > 0 ? parsed360 : defaultImages,
-      variants: processedVariants,
-      ramOptions: uniqueRams.length > 0 ? uniqueRams : [productForm.ram || '12GB'],
-      storageOptions: uniqueStorages.length > 0 ? uniqueStorages : [productForm.storage || '256GB'],
-      description: productForm.description || '',
-      condition: productForm.condition || (isSecondHandModal ? 'Tested & Verified Pre-Owned' : 'Brand New Sealed Box'),
-      warranty: productForm.warranty || (isSecondHandModal ? '3 Months BM Warranty' : '1 Year Official Warranty'),
-      deliveryInfo: productForm.deliveryInfo || 'Express Delivery 24-48 Hours Across India (Insured)',
-      replacementInfo: productForm.replacementInfo || '7 Days Replacement Policy',
-      specs: {
-        processor: productForm.processor || '',
-        display: productForm.display || '',
-        camera: productForm.camera || '',
-        battery: productForm.battery || '',
-        charging: 'Fast Charging Supported',
-        os: 'iOS / Android Flagship OS',
-        security: 'Biometric Face & Fingerprint',
-        connectivity: '5G Dual SIM, Wi-Fi 6E, Bluetooth 5.3'
-      }
+      videoUrl: primaryVideo,
+      specsText: productForm.specsText || '',
+      description: productForm.specsText || '',
+      specs: parsedSpecs,
+      isFeatured: Boolean(productForm.isFeatured),
+      isTrending: Boolean(productForm.isTrending),
+      isFlashSale: Boolean(productForm.isFlashSale),
+      isNewArrival: Boolean(productForm.isNewArrival),
+      condition: isSecondHandModal ? 'Tested & Verified Pre-Owned' : 'Brand New Sealed Box',
+      warranty: isSecondHandModal ? '3 Months BM Warranty' : '1 Year Official Warranty',
+      deliveryInfo: 'Express Delivery 24-48 Hours Across India (Insured)',
+      replacementInfo: '7 Days Replacement Policy'
     };
 
     if (isSecondHandModal) {
@@ -1128,8 +1032,9 @@ export default function AdminDashboard() {
       }
     }
 
-    setShowProductModal(false);
     syncState();
+    setShowProductModal(false);
+    alert(`✅ ${payload.title} saved successfully!`);
   };
 
   const handleImageFileUpload = (e) => {
@@ -2665,8 +2570,8 @@ export default function AdminDashboard() {
 
       {/* ── ADD / EDIT PHONE MODAL ── */}
       {showProductModal && (
-        <div className="fixed inset-0 z-50 bg-[#050505]/85 backdrop-blur-[25px] flex items-start justify-center p-4 overflow-y-auto font-mono text-xs">
-          <div className="bg-[#0D1117] border border-[#D4AF37]/40 text-[#F8F8F8] rounded-[28px] max-w-3xl w-full p-6 sm:p-8 space-y-6 shadow-[0_30px_70px_rgba(0,0,0,0.95)] my-8">
+        <div className="fixed inset-0 z-50 bg-[#050505]/90 backdrop-blur-[25px] flex items-start justify-center p-4 overflow-y-auto font-mono text-xs">
+          <div className="bg-[#0A0D14] border border-[#D4AF37]/50 text-[#F8F8F8] rounded-[28px] max-w-3xl w-full p-6 sm:p-8 space-y-6 shadow-[0_30px_90px_rgba(0,0,0,0.98)] my-8">
             <div className="flex items-center justify-between border-b border-white/[0.08] pb-4">
               <h3 className="font-display font-bold text-xl flex items-center gap-2 text-[#F8F8F8]">
                 {isSecondHandModal && <Recycle className="w-5 h-5 text-[#D4AF37]" />}
@@ -2682,417 +2587,354 @@ export default function AdminDashboard() {
             </div>
 
             <form onSubmit={handleSaveProduct} className="space-y-6">
-              {/* Basic Info */}
-              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-                <div className="sm:col-span-2">
-                  <label className="block text-[#B8BDC8] font-bold mb-1">Phone Model Title *</label>
-                  <input
-                    type="text"
-                    required
-                    placeholder="e.g. iPhone 15 Pro Max (Titanium Edition)"
-                    value={productForm.title}
-                    onChange={(e) => setProductForm({ ...productForm, title: e.target.value })}
-                    className={inputClass}
-                  />
-                </div>
-                <div>
-                  <label className="block text-[#B8BDC8] font-bold mb-1">Brand *</label>
-                  <select
-                    value={productForm.brand}
-                    onChange={(e) => setProductForm({ ...productForm, brand: e.target.value })}
-                    className={inputClass}
-                  >
-                    {allBrandsList.map(b => <option key={b} value={b} className="bg-[#050505]">{b}</option>)}
-                  </select>
-                </div>
-              </div>
-
-              {/* Category & Badges */}
-              <div className="p-4.5 rounded-2xl bg-[#D4AF37]/10 border border-[#D4AF37]/30 space-y-3 font-mono text-xs">
-                <div className="flex items-center justify-between border-b border-[#D4AF37]/20 pb-2">
-                  <span className="font-bold text-[#D4AF37] flex items-center gap-1.5 uppercase tracking-wider text-xs">
-                    <Layers className="w-4 h-4" /> SHOP CATEGORY &amp; HOMEPAGE SHOWCASE PLACEMENT
-                  </span>
-                </div>
-
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                  <div>
-                    <label className="block text-[#F8F8F8] font-bold mb-1">Shop Category *</label>
-                    <select 
-                      value={productForm.category || (categories[0]?.name || 'Flagship Titans')} 
-                      onChange={(e) => setProductForm({ ...productForm, category: e.target.value })} 
-                      className={inputClass}
-                    >
-                      {categories.map(c => <option key={c.id || c.name} value={c.name} className="bg-[#050505]">{c.name}</option>)}
-                    </select>
-                  </div>
-
-                  <div>
-                    <label className="block text-[#F8F8F8] font-bold mb-1">Condition / Warranty Tag *</label>
-                    <input 
-                      type="text" 
-                      required 
-                      placeholder="e.g. Brand New Sealed Box - 1 Year Official Warranty" 
-                      value={productForm.condition || ''} 
-                      onChange={(e) => setProductForm({ ...productForm, condition: e.target.value })} 
-                      className={inputClass} 
-                    />
-                  </div>
-                </div>
-
-                {!isSecondHandModal && (
-                  <div className="pt-2 border-t border-[#D4AF37]/20 space-y-1.5">
-                    <span className="block text-[11px] text-[#D4AF37] font-bold">Homepage Section Badges:</span>
-                    <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 text-[11px]">
-                      <label className="flex items-center gap-2 p-2 rounded-xl bg-white/[0.04] border border-white/[0.08] cursor-pointer hover:border-[#D4AF37]">
-                        <input 
-                          type="checkbox" 
-                          checked={Boolean(productForm.isNewArrival)} 
-                          onChange={(e) => setProductForm({ ...productForm, isNewArrival: e.target.checked })} 
-                          className="accent-[#D4AF37]" 
-                        />
-                        <span>✨ New Arrival</span>
-                      </label>
-                      <label className="flex items-center gap-2 p-2 rounded-xl bg-white/[0.04] border border-white/[0.08] cursor-pointer hover:border-rose-500">
-                        <input 
-                          type="checkbox" 
-                          checked={Boolean(productForm.isFlashSale)} 
-                          onChange={(e) => setProductForm({ ...productForm, isFlashSale: e.target.checked })} 
-                          className="accent-rose-500" 
-                        />
-                        <span>⚡ Flash Sale</span>
-                      </label>
-                      <label className="flex items-center gap-2 p-2 rounded-xl bg-white/[0.04] border border-white/[0.08] cursor-pointer hover:border-[#0FAE72]">
-                        <input 
-                          type="checkbox" 
-                          checked={Boolean(productForm.isFeatured)} 
-                          onChange={(e) => setProductForm({ ...productForm, isFeatured: e.target.checked })} 
-                          className="accent-[#0FAE72]" 
-                        />
-                        <span>🌟 Featured Titan</span>
-                      </label>
-                      <label className="flex items-center gap-2 p-2 rounded-xl bg-white/[0.04] border border-white/[0.08] cursor-pointer hover:border-[#0FAE72]">
-                        <input 
-                          type="checkbox" 
-                          checked={Boolean(productForm.isTrending)} 
-                          onChange={(e) => setProductForm({ ...productForm, isTrending: e.target.checked })} 
-                          className="accent-[#0FAE72]" 
-                        />
-                        <span>🔥 Trending Deal</span>
-                      </label>
-                    </div>
-                  </div>
-                )}
-              </div>
-
-              {/* ── MULTI-COLOR PRODUCT GALLERIES SECTION ── */}
-              <div className="p-5 rounded-2xl bg-white/[0.03] border border-[#D4AF37]/40 space-y-4">
-                <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2 pb-3 border-b border-white/[0.08]">
-                  <div>
-                    <h4 className="text-sm font-bold text-[#D4AF37] flex items-center gap-2 font-display">
-                      🎨 MULTIPLE PRODUCT COLORS &amp; COLOR-SPECIFIC PHOTO GALLERIES ({colorsList.length})
-                    </h4>
-                    <p className="text-[11px] text-[#B8BDC8] mt-0.5">
-                      Add multiple color options. Each color has its own separate photo gallery that customers can view/swipe.
-                    </p>
-                  </div>
-                  <button
-                    type="button"
-                    onClick={handleAddColor}
-                    className="px-3.5 py-1.5 rounded-xl bg-[#D4AF37] text-[#050505] font-bold text-xs hover:bg-[#E7C76A] transition flex items-center gap-1 shrink-0 shadow-md"
-                  >
-                    <Plus className="w-3.5 h-3.5" /> + Add Color
-                  </button>
-                </div>
-
-                <div className="space-y-4">
-                  {colorsList.map((col, cIdx) => (
-                    <div key={col.id || cIdx} className="p-4 rounded-2xl bg-[#050505] border border-white/[0.1] space-y-3 shadow-md">
-                      <div className="flex items-center justify-between gap-3">
-                        <div className="flex items-center gap-2.5 flex-1">
-                          <span className="w-6 h-6 rounded-full border border-white/30 shrink-0 shadow-sm" style={{ backgroundColor: col.hex || '#111827' }} />
-                          <input
-                            type="text"
-                            required
-                            placeholder="Color Name (e.g. Natural Titanium, Deep Blue, Space Black)"
-                            value={col.name}
-                            onChange={(e) => handleUpdateColorField(col.id, 'name', e.target.value)}
-                            className="flex-1 px-3 py-1.5 rounded-xl bg-white/[0.05] border border-white/[0.1] text-[#F8F8F8] font-bold outline-none focus:border-[#D4AF37]"
-                          />
-                          <input
-                            type="color"
-                            value={col.hex || '#111827'}
-                            onChange={(e) => handleUpdateColorField(col.id, 'hex', e.target.value)}
-                            className="w-8 h-8 rounded-lg cursor-pointer bg-transparent border-0 p-0"
-                            title="Pick Color Swatch"
-                          />
-                        </div>
-                        {colorsList.length > 1 && (
-                          <button
-                            type="button"
-                            onClick={() => handleRemoveColor(col.id)}
-                            className="px-2.5 py-1 rounded-xl bg-rose-500/15 border border-rose-500/30 text-rose-400 hover:bg-rose-500 hover:text-white transition text-[11px] font-bold flex items-center gap-1 shrink-0"
-                          >
-                            <Trash2 className="w-3.5 h-3.5" /> Delete Color
-                          </button>
-                        )}
-                      </div>
-
-                      {/* Photos for this specific color */}
-                      <div className="space-y-2 pt-1 border-t border-white/[0.06]">
-                        <div className="flex items-center justify-between text-[11px]">
-                          <span className="text-[#B8BDC8] font-bold">
-                            Photos for <strong className="text-[#D4AF37]">{col.name || `Color ${cIdx + 1}`}</strong> ({col.images?.length || 0} photos):
-                          </span>
-                          <div className="flex items-center gap-2">
-                            <label
-                              htmlFor={`color-file-upload-${col.id}`}
-                              className="px-3 py-1 rounded-xl bg-[#D4AF37]/15 border border-[#D4AF37]/40 hover:bg-[#D4AF37] hover:text-[#050505] text-[#D4AF37] font-bold cursor-pointer transition flex items-center gap-1 text-[11px]"
-                            >
-                              <Upload className="w-3 h-3" /> + Add Photos (Upload Files)
-                            </label>
-                            <input
-                              id={`color-file-upload-${col.id}`}
-                              type="file"
-                              multiple
-                              accept="image/*"
-                              onChange={(e) => handleColorFileUpload(col.id, e)}
-                              className="hidden"
-                            />
-                          </div>
-                        </div>
-
-                        {/* Quick URL Input for this Color */}
-                        <div className="flex gap-2">
-                          <input
-                            type="text"
-                            id={`url-input-${col.id}`}
-                            placeholder="Or paste photo URL and click Add Photo"
-                            className="flex-1 px-3 py-1.5 rounded-xl bg-white/[0.03] border border-white/[0.08] text-[#F8F8F8] text-[11px] outline-none focus:border-[#D4AF37]"
-                            onKeyDown={(e) => {
-                              if (e.key === 'Enter') {
-                                e.preventDefault();
-                                handleAddColorImage(col.id, e.target.value);
-                                e.target.value = '';
-                              }
-                            }}
-                          />
-                          <button
-                            type="button"
-                            onClick={() => {
-                              const el = document.getElementById(`url-input-${col.id}`);
-                              if (el && el.value) {
-                                handleAddColorImage(col.id, el.value);
-                                el.value = '';
-                              }
-                            }}
-                            className="px-3 py-1.5 rounded-xl bg-white/[0.08] text-[#F8F8F8] font-bold text-[11px] hover:bg-[#D4AF37] hover:text-[#050505] transition"
-                          >
-                            + Add Photo URL
-                          </button>
-                        </div>
-
-                        {/* Photo Gallery Grid for this Color */}
-                        {col.images && col.images.length > 0 ? (
-                          <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-6 gap-2.5 pt-2">
-                            {col.images.map((imgUrl, imgIdx) => (
-                              <div key={imgIdx} className="relative group rounded-xl overflow-hidden bg-white/[0.03] border border-white/[0.08] aspect-square flex items-center justify-center p-1">
-                                <img src={imgUrl} alt={`Color photo ${imgIdx + 1}`} className="max-h-full max-w-full object-contain" />
-                                
-                                {imgIdx === 0 && (
-                                  <span className="absolute top-1 left-1 px-1.5 py-0.5 rounded bg-[#D4AF37] text-[#050505] font-black text-[8px] shadow-sm">
-                                    Cover
-                                  </span>
-                                )}
-
-                                {/* Actions overlay */}
-                                <div className="absolute inset-0 bg-black/80 opacity-0 group-hover:opacity-100 transition flex flex-col items-center justify-center gap-1">
-                                  <button
-                                    type="button"
-                                    onClick={() => handleRemoveColorImage(col.id, imgIdx)}
-                                    className="p-1 rounded-full bg-rose-500 text-white hover:bg-rose-600 transition"
-                                    title="Delete Photo"
-                                  >
-                                    <Trash2 className="w-3 h-3" />
-                                  </button>
-                                  <div className="flex gap-1">
-                                    {imgIdx > 0 && (
-                                      <button
-                                        type="button"
-                                        onClick={() => handleMoveColorImage(col.id, imgIdx, 'left')}
-                                        className="px-1.5 py-0.5 rounded bg-white/20 text-white text-[9px] hover:bg-white/40 font-bold"
-                                        title="Move Left"
-                                      >
-                                        ←
-                                      </button>
-                                    )}
-                                    {imgIdx < col.images.length - 1 && (
-                                      <button
-                                        type="button"
-                                        onClick={() => handleMoveColorImage(col.id, imgIdx, 'right')}
-                                        className="px-1.5 py-0.5 rounded bg-white/20 text-white text-[9px] hover:bg-white/40 font-bold"
-                                        title="Move Right"
-                                      >
-                                        →
-                                      </button>
-                                    )}
-                                  </div>
-                                </div>
-                              </div>
-                            ))}
-                          </div>
-                        ) : (
-                          <div className="p-4 rounded-xl bg-white/[0.02] border border-dashed border-white/[0.1] text-center text-[11px] text-[#B8BDC8]">
-                            No photos added for this color yet. Click <strong>+ Add Photos</strong> or paste a URL above.
-                          </div>
-                        )}
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              </div>
-
-              {/* Price & Stock */}
-              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-                <div>
-                  <label className="block text-[#B8BDC8] font-bold mb-1">Market MRP (₹)</label>
-                  <input
-                    type="number"
-                    required
-                    value={productForm.marketPrice}
-                    onChange={(e) => setProductForm({ ...productForm, marketPrice: Number(e.target.value) })}
-                    className={inputClass}
-                  />
-                </div>
-                <div>
-                  <label className="block text-[#0FAE72] font-bold mb-1">BM Special Price (₹) *</label>
-                  <input
-                    type="number"
-                    required
-                    value={productForm.bmPrice}
-                    onChange={(e) => setProductForm({ ...productForm, bmPrice: Number(e.target.value) })}
-                    className={inputClass}
-                  />
-                </div>
-                <div>
-                  <label className="block text-[#B8BDC8] font-bold mb-1">Stock Quantity *</label>
-                  <input
-                    type="number"
-                    required
-                    value={productForm.stock}
-                    onChange={(e) => setProductForm({ ...productForm, stock: Number(e.target.value) })}
-                    className={inputClass}
-                  />
-                </div>
-              </div>
-
-              {/* Specifications */}
-              <div className="p-4.5 rounded-2xl bg-white/[0.03] border border-white/[0.08] space-y-3 font-mono text-xs">
-                <span className="font-bold text-[#D4AF37] block">KEY SPECIFICATIONS &amp; HARDWARE</span>
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                  <div>
-                    <label className="block text-[#B8BDC8] font-bold mb-1">Processor / Chipset</label>
-                    <input
-                      type="text"
-                      placeholder="e.g. A17 Pro / Snapdragon 8 Gen 3"
-                      value={productForm.processor || ''}
-                      onChange={(e) => setProductForm({ ...productForm, processor: e.target.value })}
-                      className={inputClass}
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-[#B8BDC8] font-bold mb-1">Display</label>
-                    <input
-                      type="text"
-                      placeholder="e.g. 6.7-inch Super Retina XDR OLED 120Hz"
-                      value={productForm.display || ''}
-                      onChange={(e) => setProductForm({ ...productForm, display: e.target.value })}
-                      className={inputClass}
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-[#B8BDC8] font-bold mb-1">Camera System</label>
-                    <input
-                      type="text"
-                      placeholder="e.g. 48MP Main + 12MP Ultra Wide + 12MP Telephoto"
-                      value={productForm.camera || ''}
-                      onChange={(e) => setProductForm({ ...productForm, camera: e.target.value })}
-                      className={inputClass}
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-[#B8BDC8] font-bold mb-1">Battery &amp; Charging</label>
-                    <input
-                      type="text"
-                      placeholder="e.g. 4,422 mAh Fast Charging"
-                      value={productForm.battery || ''}
-                      onChange={(e) => setProductForm({ ...productForm, battery: e.target.value })}
-                      className={inputClass}
-                    />
-                  </div>
-                </div>
-              </div>
-
-              {/* Delivery & Warranty Policies */}
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                <div>
-                  <label className="block text-[#B8BDC8] font-bold mb-1">Warranty Information</label>
-                  <input
-                    type="text"
-                    placeholder="e.g. 1 Year Official Apple Manufacturer Warranty"
-                    value={productForm.warranty || ''}
-                    onChange={(e) => setProductForm({ ...productForm, warranty: e.target.value })}
-                    className={inputClass}
-                  />
-                </div>
-                <div>
-                  <label className="block text-[#B8BDC8] font-bold mb-1">Delivery Information</label>
-                  <input
-                    type="text"
-                    placeholder="e.g. Express Delivery 24-48 Hours Across India (Insured)"
-                    value={productForm.deliveryInfo || ''}
-                    onChange={(e) => setProductForm({ ...productForm, deliveryInfo: e.target.value })}
-                    className={inputClass}
-                  />
-                </div>
-              </div>
-
-              {/* Product Description */}
+              {/* 1. Mobile Brand */}
               <div>
-                <label className="block text-[#B8BDC8] font-bold mb-1">Product Description &amp; Highlights</label>
-                <textarea
-                  rows="3"
-                  placeholder="Describe key highlights, build quality, included box accessories..."
-                  value={productForm.description || ''}
-                  onChange={(e) => setProductForm({ ...productForm, description: e.target.value })}
-                  className={inputClass}
+                <label className="block text-[#D4AF37] font-bold text-xs uppercase tracking-wider mb-1.5 flex items-center gap-1.5">
+                  <Tag className="w-3.5 h-3.5" /> Mobile Brand *
+                </label>
+                <div className="relative">
+                  <input
+                    type="text"
+                    list="bm-brands-list"
+                    required
+                    placeholder="Enter or select mobile brand (e.g. Apple, Samsung, OnePlus, Vivo...)"
+                    value={productForm.brand || ''}
+                    onChange={(e) => setProductForm({ ...productForm, brand: e.target.value })}
+                    className="w-full px-4 py-3 rounded-2xl bg-[#030508] border border-white/[0.12] text-[#F8F8F8] placeholder:text-white/20 font-mono text-xs outline-none focus:border-[#D4AF37] focus:ring-1 focus:ring-[#D4AF37]/30 transition"
+                  />
+                  <datalist id="bm-brands-list">
+                    {allBrandsList.map(b => (
+                      <option key={b} value={b} />
+                    ))}
+                  </datalist>
+                </div>
+              </div>
+
+              {/* 2. Mobile Name */}
+              <div>
+                <label className="block text-[#D4AF37] font-bold text-xs uppercase tracking-wider mb-1.5 flex items-center gap-1.5">
+                  <Package className="w-3.5 h-3.5" /> Mobile Name *
+                </label>
+                <input
+                  type="text"
+                  required
+                  placeholder="Enter mobile model name (e.g. iPhone 16 Pro Max 256GB / Galaxy S24 Ultra)"
+                  value={productForm.title || ''}
+                  onChange={(e) => setProductForm({ ...productForm, title: e.target.value })}
+                  className="w-full px-4 py-3 rounded-2xl bg-[#030508] border border-white/[0.12] text-[#F8F8F8] placeholder:text-white/20 font-mono text-xs outline-none focus:border-[#D4AF37] focus:ring-1 focus:ring-[#D4AF37]/30 transition"
                 />
               </div>
 
-              {/* Pre-Owned Specifics */}
-              {isSecondHandModal && (
-                <div className="p-4 rounded-2xl bg-[#D4AF37]/10 border border-[#D4AF37]/30 space-y-3">
-                  <span className="text-[#D4AF37] font-bold block">CERTIFIED PRE-OWNED VERIFICATION METRICS</span>
-                  <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
-                    <div>
-                      <label className="block text-[#B8BDC8] text-[10px] mb-1">Battery Health %</label>
-                      <input type="text" value={productForm.batteryHealth || '95%'} onChange={(e) => setProductForm({ ...productForm, batteryHealth: e.target.value })} className={inputClass} />
+              {/* 3. Color & Media Section (Unlimited Colors, Independent Photos + Videos) */}
+              <div className="space-y-4">
+                <div className="flex items-center justify-between pb-1">
+                  <label className="text-[#D4AF37] font-bold text-xs uppercase tracking-wider flex items-center gap-1.5">
+                    <Sparkles className="w-3.5 h-3.5" /> Mobile Colors &amp; Media ({colorsList.length})
+                  </label>
+                </div>
+
+                {colorsList.map((col, cIdx) => (
+                  <div key={col.id || cIdx} className="p-4.5 rounded-2xl bg-[#05070B] border border-white/[0.12] space-y-4 shadow-inner">
+                    {/* Color Name & Swatch */}
+                    <div className="flex items-center justify-between gap-3">
+                      <div className="flex items-center gap-2.5 flex-1">
+                        <span 
+                          className="w-7 h-7 rounded-full border border-white/30 shrink-0 shadow-sm"
+                          style={{ backgroundColor: col.hex || '#000000' }} 
+                        />
+                        <input
+                          type="text"
+                          required
+                          placeholder="Color Name (e.g. Natural Titanium, Deep Blue, Space Black)"
+                          value={col.name || ''}
+                          onChange={(e) => handleUpdateColorField(col.id, 'name', e.target.value)}
+                          className="flex-1 px-3.5 py-2 rounded-xl bg-[#000000] border border-white/[0.12] text-[#F8F8F8] placeholder:text-white/20 font-bold text-xs outline-none focus:border-[#D4AF37]"
+                        />
+                        <input
+                          type="color"
+                          value={col.hex || '#000000'}
+                          onChange={(e) => handleUpdateColorField(col.id, 'hex', e.target.value)}
+                          className="w-8 h-8 rounded-lg cursor-pointer bg-transparent border-0 p-0 shrink-0"
+                          title="Pick Color Swatch"
+                        />
+                      </div>
+                      {colorsList.length > 1 && (
+                        <button
+                          type="button"
+                          onClick={() => handleRemoveColor(col.id)}
+                          className="px-2.5 py-1.5 rounded-xl bg-rose-500/15 border border-rose-500/30 text-rose-400 hover:bg-rose-500 hover:text-white transition text-[11px] font-bold flex items-center gap-1 shrink-0"
+                        >
+                          <Trash2 className="w-3.5 h-3.5" /> Remove Color
+                        </button>
+                      )}
                     </div>
-                    <div>
-                      <label className="block text-[#B8BDC8] text-[10px] mb-1">Device Age</label>
-                      <input type="text" value={productForm.deviceAge || '6 Months'} onChange={(e) => setProductForm({ ...productForm, deviceAge: e.target.value })} className={inputClass} />
+
+                    {/* Photos for this Color */}
+                    <div className="space-y-2.5 pt-2 border-t border-white/[0.06]">
+                      <div className="flex items-center justify-between">
+                        <span className="text-[#B8BDC8] font-bold text-[11px] flex items-center gap-1.5">
+                          <ImageIcon className="w-3.5 h-3.5 text-[#D4AF37]" />
+                          Photos for <strong className="text-[#D4AF37]">{col.name || `Color #${cIdx + 1}`}</strong>:
+                        </span>
+                        <div className="flex items-center gap-2">
+                          <label
+                            htmlFor={`color-file-upload-${col.id}`}
+                            className="px-3 py-1.5 rounded-xl bg-[#D4AF37]/15 border border-[#D4AF37]/40 hover:bg-[#D4AF37] hover:text-[#050505] text-[#D4AF37] font-bold cursor-pointer transition flex items-center gap-1.5 text-[11px]"
+                          >
+                            <Upload className="w-3 h-3" /> Upload Photos
+                          </label>
+                          <input
+                            id={`color-file-upload-${col.id}`}
+                            type="file"
+                            multiple
+                            accept="image/*"
+                            onChange={(e) => handleColorFileUpload(col.id, e)}
+                            className="hidden"
+                          />
+                        </div>
+                      </div>
+
+                      {/* Photo Gallery Grid with prominent `+` Add More Photos button */}
+                      <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-6 gap-2.5">
+                        {(col.images || []).map((imgUrl, imgIdx) => (
+                          <div key={imgIdx} className="relative group rounded-xl overflow-hidden bg-[#000000] border border-white/[0.12] aspect-square flex items-center justify-center p-1">
+                            <img src={imgUrl} alt={`Color photo ${imgIdx + 1}`} className="max-h-full max-w-full object-contain" />
+                            {imgIdx === 0 && (
+                              <span className="absolute top-1 left-1 px-1.5 py-0.5 rounded bg-[#D4AF37] text-[#050505] font-black text-[8px] shadow-sm">
+                                Cover
+                              </span>
+                            )}
+                            <div className="absolute inset-0 bg-black/80 opacity-0 group-hover:opacity-100 transition flex flex-col items-center justify-center gap-1">
+                              <button
+                                type="button"
+                                onClick={() => handleRemoveColorImage(col.id, imgIdx)}
+                                className="p-1 rounded-full bg-rose-500 text-white hover:bg-rose-600 transition"
+                                title="Delete Photo"
+                              >
+                                <Trash2 className="w-3 h-3" />
+                              </button>
+                              <div className="flex gap-1">
+                                {imgIdx > 0 && (
+                                  <button
+                                    type="button"
+                                    onClick={() => handleMoveColorImage(col.id, imgIdx, 'left')}
+                                    className="px-1.5 py-0.5 rounded bg-white/20 text-white text-[9px] hover:bg-white/40 font-bold"
+                                    title="Move Left"
+                                  >
+                                    ←
+                                  </button>
+                                )}
+                                {imgIdx < col.images.length - 1 && (
+                                  <button
+                                    type="button"
+                                    onClick={() => handleMoveColorImage(col.id, imgIdx, 'right')}
+                                    className="px-1.5 py-0.5 rounded bg-white/20 text-white text-[9px] hover:bg-white/40 font-bold"
+                                    title="Move Right"
+                                  >
+                                    →
+                                  </button>
+                                )}
+                              </div>
+                            </div>
+                          </div>
+                        ))}
+
+                        {/* `+` Icon Tile to Add More Photos */}
+                        <label
+                          htmlFor={`color-file-upload-${col.id}`}
+                          className="aspect-square rounded-xl border border-dashed border-[#D4AF37]/50 hover:border-[#D4AF37] bg-[#D4AF37]/5 hover:bg-[#D4AF37]/15 flex flex-col items-center justify-center cursor-pointer transition text-[#D4AF37] group p-2 text-center"
+                          title="Click to Add More Photos"
+                        >
+                          <Plus className="w-6 h-6 group-hover:scale-125 transition-transform text-[#D4AF37]" />
+                          <span className="text-[10px] font-bold mt-1 text-[#F8F8F8]/80 group-hover:text-[#F8F8F8]">
+                            + Add Photo
+                          </span>
+                        </label>
+                      </div>
+
+                      {/* Quick URL input */}
+                      <div className="flex gap-2 pt-1">
+                        <input
+                          type="text"
+                          id={`url-input-${col.id}`}
+                          placeholder="Or paste photo image URL (https://...)..."
+                          className="flex-1 px-3 py-1.5 rounded-xl bg-[#000000] border border-white/[0.08] text-[#F8F8F8] placeholder:text-white/20 text-[11px] outline-none focus:border-[#D4AF37]"
+                          onKeyDown={(e) => {
+                            if (e.key === 'Enter') {
+                              e.preventDefault();
+                              handleAddColorImage(col.id, e.target.value);
+                              e.target.value = '';
+                            }
+                          }}
+                        />
+                        <button
+                          type="button"
+                          onClick={() => {
+                            const el = document.getElementById(`url-input-${col.id}`);
+                            if (el && el.value) {
+                              handleAddColorImage(col.id, el.value);
+                              el.value = '';
+                            }
+                          }}
+                          className="px-3 py-1.5 rounded-xl bg-white/[0.08] text-[#F8F8F8] font-bold text-[11px] hover:bg-[#D4AF37] hover:text-[#050505] transition shrink-0"
+                        >
+                          + Add URL
+                        </button>
+                      </div>
                     </div>
-                    <div>
-                      <label className="block text-[#B8BDC8] text-[10px] mb-1">Condition Grade</label>
-                      <input type="text" value={productForm.conditionBadge || 'Superb (9/10)'} onChange={(e) => setProductForm({ ...productForm, conditionBadge: e.target.value })} className={inputClass} />
-                    </div>
-                    <div>
-                      <label className="block text-[#B8BDC8] text-[10px] mb-1">Warranty Status</label>
-                      <input type="text" value={productForm.warrantyStatus || 'Official Warranty'} onChange={(e) => setProductForm({ ...productForm, warrantyStatus: e.target.value })} className={inputClass} />
+
+                    {/* Video for this Color */}
+                    <div className="space-y-2 pt-2 border-t border-white/[0.06]">
+                      <div className="flex items-center justify-between">
+                        <span className="text-[#B8BDC8] font-bold text-[11px] flex items-center gap-1.5">
+                          <Video className="w-3.5 h-3.5 text-[#0FAE72]" />
+                          Video of this Phone / Color:
+                        </span>
+                        <div className="flex items-center gap-2">
+                          <label
+                            htmlFor={`color-video-upload-${col.id}`}
+                            className="px-3 py-1.5 rounded-xl bg-[#0FAE72]/15 border border-[#0FAE72]/40 hover:bg-[#0FAE72] hover:text-[#050505] text-[#0FAE72] font-bold cursor-pointer transition flex items-center gap-1.5 text-[11px]"
+                          >
+                            <Upload className="w-3 h-3" /> Upload Video File
+                          </label>
+                          <input
+                            id={`color-video-upload-${col.id}`}
+                            type="file"
+                            accept="video/*"
+                            onChange={(e) => handleColorVideoUpload(col.id, e)}
+                            className="hidden"
+                          />
+                        </div>
+                      </div>
+
+                      <div className="flex gap-2">
+                        <input
+                          type="text"
+                          placeholder="Or paste video URL (YouTube / MP4 / Drive / Cloudinary)..."
+                          value={col.videoUrl || ''}
+                          onChange={(e) => handleUpdateColorField(col.id, 'videoUrl', e.target.value)}
+                          className="flex-1 px-3 py-1.5 rounded-xl bg-[#000000] border border-white/[0.08] text-[#F8F8F8] placeholder:text-white/20 text-[11px] outline-none focus:border-[#0FAE72]"
+                        />
+                        {col.videoUrl && (
+                          <button
+                            type="button"
+                            onClick={() => handleUpdateColorField(col.id, 'videoUrl', '')}
+                            className="px-2.5 py-1.5 rounded-xl bg-rose-500/15 border border-rose-500/30 text-rose-400 hover:bg-rose-500 hover:text-white text-[11px] font-bold transition"
+                          >
+                            Clear Video
+                          </button>
+                        )}
+                      </div>
+
+                      {col.videoUrl && (
+                        <div className="p-2 rounded-xl bg-[#000000] border border-[#0FAE72]/30 flex items-center gap-2">
+                          <Video className="w-4 h-4 text-[#0FAE72] shrink-0" />
+                          <span className="text-[11px] text-[#0FAE72] font-bold truncate flex-1">
+                            Attached Video: {col.videoUrl.startsWith('data:') ? 'Local Video File Uploaded' : col.videoUrl}
+                          </span>
+                        </div>
+                      )}
                     </div>
                   </div>
+                ))}
+
+                {/* + Add New Color Option (Unlimited) */}
+                <button
+                  type="button"
+                  onClick={handleAddColor}
+                  className="w-full py-3 rounded-2xl bg-gradient-to-r from-[#D4AF37]/15 to-[#D4AF37]/25 hover:from-[#D4AF37] hover:to-[#E7C76A] hover:text-[#050505] text-[#D4AF37] border border-[#D4AF37]/40 font-bold text-xs transition flex items-center justify-center gap-2 shadow-sm"
+                >
+                  <Plus className="w-4 h-4" /> + Add New Color (Unlimited Colors Option)
+                </button>
+              </div>
+
+              {/* 4. Homepage Section Badges (Unchanged) */}
+              <div className="p-4 rounded-2xl bg-white/[0.02] border border-white/[0.08] space-y-2">
+                <span className="block text-xs text-[#D4AF37] font-bold uppercase tracking-wider flex items-center gap-1.5">
+                  <Layers className="w-3.5 h-3.5" /> Homepage Section Badges:
+                </span>
+                <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 text-[11px]">
+                  <label className="flex items-center gap-2 p-2.5 rounded-xl bg-[#000000] border border-white/[0.08] cursor-pointer hover:border-[#D4AF37] transition">
+                    <input 
+                      type="checkbox" 
+                      checked={Boolean(productForm.isNewArrival)} 
+                      onChange={(e) => setProductForm({ ...productForm, isNewArrival: e.target.checked })} 
+                      className="accent-[#D4AF37] w-4 h-4" 
+                    />
+                    <span className="font-bold">✨ New Arrival</span>
+                  </label>
+                  <label className="flex items-center gap-2 p-2.5 rounded-xl bg-[#000000] border border-white/[0.08] cursor-pointer hover:border-rose-500 transition">
+                    <input 
+                      type="checkbox" 
+                      checked={Boolean(productForm.isFlashSale)} 
+                      onChange={(e) => setProductForm({ ...productForm, isFlashSale: e.target.checked })} 
+                      className="accent-rose-500 w-4 h-4" 
+                    />
+                    <span className="font-bold">⚡ Flash Sale</span>
+                  </label>
+                  <label className="flex items-center gap-2 p-2.5 rounded-xl bg-[#000000] border border-white/[0.08] cursor-pointer hover:border-[#0FAE72] transition">
+                    <input 
+                      type="checkbox" 
+                      checked={Boolean(productForm.isFeatured)} 
+                      onChange={(e) => setProductForm({ ...productForm, isFeatured: e.target.checked })} 
+                      className="accent-[#0FAE72] w-4 h-4" 
+                    />
+                    <span className="font-bold">🌟 Featured Titan</span>
+                  </label>
+                  <label className="flex items-center gap-2 p-2.5 rounded-xl bg-[#000000] border border-white/[0.08] cursor-pointer hover:border-[#0FAE72] transition">
+                    <input 
+                      type="checkbox" 
+                      checked={Boolean(productForm.isTrending)} 
+                      onChange={(e) => setProductForm({ ...productForm, isTrending: e.target.checked })} 
+                      className="accent-[#0FAE72] w-4 h-4" 
+                    />
+                    <span className="font-bold">🔥 Trending Deal</span>
+                  </label>
                 </div>
-              )}
+              </div>
+
+              {/* 5. Mobile Information (Single Unified Space - Replaces Key Specs & Hardware) */}
+              <div>
+                <label className="block text-[#D4AF37] font-bold text-xs uppercase tracking-wider mb-1.5 flex items-center gap-1.5">
+                  <FileText className="w-3.5 h-3.5" /> Mobile Information (Display, Battery, Camera, Condition, Warranty, Storage, RAM, etc.)
+                </label>
+                <textarea
+                  rows="5"
+                  placeholder="Write any mobile details here...&#10;e.g.&#10;• Display: 6.7-inch Super Retina XDR OLED 120Hz ProMotion&#10;• Camera: 48MP Fusion + 12MP Ultra-Wide + 12MP 5x Telephoto&#10;• Battery: 4,422 mAh Fast Charging (All-Day Battery Life)&#10;• Processor: Apple A17 Pro (3nm)&#10;• RAM &amp; Storage: 8GB RAM / 256GB Storage&#10;• Warranty: 1 Year Official Manufacturer Warranty&#10;• In Box: Phone, Braided USB-C Cable, Documentation"
+                  value={productForm.specsText || ''}
+                  onChange={(e) => setProductForm({ ...productForm, specsText: e.target.value })}
+                  className="w-full px-4 py-3 rounded-2xl bg-[#030508] border border-white/[0.12] text-[#F8F8F8] placeholder:text-white/25 font-mono text-xs outline-none focus:border-[#D4AF37] focus:ring-1 focus:ring-[#D4AF37]/30 transition leading-relaxed"
+                />
+              </div>
+
+              {/* 6. In Last: Market Price & BM Price */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-[#B8BDC8] font-bold text-xs uppercase tracking-wider mb-1.5">
+                    Market Price (₹)
+                  </label>
+                  <input
+                    type="number"
+                    placeholder="Enter Market MRP (e.g. 159900)"
+                    value={productForm.marketPrice !== undefined && productForm.marketPrice !== null && productForm.marketPrice !== 0 ? productForm.marketPrice : (productForm.marketPrice === '' ? '' : productForm.marketPrice)}
+                    onChange={(e) => setProductForm({ ...productForm, marketPrice: e.target.value })}
+                    className="w-full px-4 py-3 rounded-2xl bg-[#030508] border border-white/[0.12] text-[#F8F8F8] placeholder:text-white/20 font-mono text-xs outline-none focus:border-[#D4AF37] transition"
+                  />
+                </div>
+                <div>
+                  <label className="block text-[#0FAE72] font-bold text-xs uppercase tracking-wider mb-1.5">
+                    BM Price (₹) *
+                  </label>
+                  <input
+                    type="number"
+                    required
+                    placeholder="Enter Balaji Mobile Price (e.g. 134900)"
+                    value={productForm.bmPrice !== undefined && productForm.bmPrice !== null && productForm.bmPrice !== 0 ? productForm.bmPrice : (productForm.bmPrice === '' ? '' : productForm.bmPrice)}
+                    onChange={(e) => setProductForm({ ...productForm, bmPrice: e.target.value })}
+                    className="w-full px-4 py-3 rounded-2xl bg-[#030508] border border-[#0FAE72]/50 text-[#0FAE72] placeholder:text-white/20 font-mono text-xs font-bold outline-none focus:border-[#0FAE72] focus:ring-1 focus:ring-[#0FAE72]/30 transition"
+                  />
+                </div>
+              </div>
 
               {/* Save / Cancel Buttons */}
               <div className="flex gap-3 pt-4 border-t border-white/[0.08]">
@@ -3100,7 +2942,7 @@ export default function AdminDashboard() {
                   type="submit"
                   className="flex-1 py-3.5 rounded-2xl bg-gradient-to-r from-[#0FAE72] to-[#0B8F5C] hover:from-[#D4AF37] hover:to-[#E7C76A] hover:text-[#050505] text-white font-bold text-sm shadow-lg transition flex items-center justify-center gap-2"
                 >
-                  <Save className="w-4 h-4" /> Save Product Permanently
+                  <Save className="w-4 h-4" /> Save Device
                 </button>
                 <button
                   type="button"
